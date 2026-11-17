@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+id = &"dummy_turret"
+display_name = "Test Dummy (Lantern Turret)"
+tags = Array[StringName]([&"test", &"ranged", &"stationary"])
+max_health = 70.0
+stagger_threshold = 40.0
+stagger_time = 0.25
+time_reward = 2.0
+move_speed = 0.0
+detection_range = 45.0
+head_track_speed = 1.6
+attack_damage = 10.0
+attack_windup = 0.55
+projectile_speed = 9.0
+fire_interval = 1.9

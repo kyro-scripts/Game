@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_wd"]
+
+[resource]
+script = ExtResource("1_wd")
+id = &"sidearm_placeholder"
+display_name = "Placeholder Sidearm"
+tags = Array[StringName]([&"hitscan", &"placeholder"])
+damage = 34.0
+fire_interval = 0.26

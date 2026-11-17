@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/breachable_door.gd" id="1_door"]
+
+[node name="BreachableDoor" type="StaticBody3D" groups=["breachable"]]
+collision_mask = 0
+script = ExtResource("1_door")

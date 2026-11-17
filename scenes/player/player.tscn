@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player/player_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/viewmodel/viewmodel_sway.gd" id="3_sway"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_base.gd" id="4_weapon"]
+[ext_resource type="Script" path="res://scripts/viewmodel/stopwatch_viewmodel.gd" id="5_watch_view"]
+[ext_resource type="Script" path="res://scripts/player/stopwatch_controller.gd" id="6_watch_ctrl"]
+[ext_resource type="Script" path="res://scripts/viewmodel/viewmodel_renderer.gd" id="7_vm_renderer"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+
+[node name="Camera" type="Camera3D" parent="Head"]
+current = true
+fov = 96.0
+near = 0.05
+far = 400.0
+script = ExtResource("2_camera")
+
+[node name="ViewmodelRoot" type="Node3D" parent="Head/Camera"]
+script = ExtResource("3_sway")
+
+[node name="Weapon" type="Node3D" parent="Head/Camera/ViewmodelRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, -0.2, -0.36)
+script = ExtResource("4_weapon")
+
+[node name="Model" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon"]
+
+[node name="Muzzle" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.31)
+
+[node name="Flash" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon/Model/Muzzle"]
+
+[node name="Stopwatch" type="Node3D" parent="Head/Camera/ViewmodelRoot"]
+transform = Transform3D(0.9386, 0.0437, 0.3422, -0.1899, 0.8936, 0.4067, -0.2880, -0.4468, 0.8470, -0.22, -0.19, -0.4)
+script = ExtResource("5_watch_view")
+
+[node name="Model" type="Node3D" parent="Head/Camera/ViewmodelRoot/Stopwatch"]
+
+[node name="ViewmodelFill" type="OmniLight3D" parent="Head/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.1)
+light_color = Color(0.92, 0.9, 0.86, 1)
+light_energy = 0.55
+light_cull_mask = 524288
+omni_range = 1.6
+
+[node name="StopwatchController" type="Node" parent="."]
+script = ExtResource("6_watch_ctrl")
+
+[node name="ViewmodelRenderer" type="CanvasLayer" parent="."]
+script = ExtResource("7_vm_renderer")

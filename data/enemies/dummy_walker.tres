@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+id = &"dummy_walker"
+display_name = "Test Dummy (Walker)"
+tags = Array[StringName]([&"test", &"melee"])
+max_health = 100.0
+stagger_threshold = 30.0
+stagger_time = 0.3
+time_reward = 3.0
+move_speed = 6.5
+acceleration = 30.0
+turn_speed = 5.0
+detection_range = 40.0
+head_track_speed = 2.6
+attack_damage = 15.0
+attack_range = 2.2
+attack_windup = 0.45
+attack_recover = 0.6

@@ -1,0 +1,8 @@
+# Godot 4 editor/import cache (regenerated on open)
+.godot/
+/android/
+
+# Local build outputs
+/build/
+/exports/
+*.tmp

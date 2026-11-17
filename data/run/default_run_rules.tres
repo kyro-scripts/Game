@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RunRulesData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/run_rules_data.gd" id="1_rr"]
+
+[resource]
+script = ExtResource("1_rr")
+id = &"standard"
+display_name = "Standard Masque"

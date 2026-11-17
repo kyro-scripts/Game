@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/projectile.gd" id="1_proj"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_orb"]
+radius = 0.17
+height = 0.34
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orb"]
+albedo_color = Color(0.95, 0.06, 0.04, 1)
+emission_enabled = true
+emission = Color(0.95, 0.06, 0.04, 1)
+emission_energy_multiplier = 3.0
+
+[node name="Projectile" type="Node3D"]
+script = ExtResource("1_proj")
+
+[node name="Orb" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+mesh = SubResource("SphereMesh_orb")
+surface_material_override/0 = SubResource("StandardMaterial3D_orb")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+light_color = Color(0.95, 0.08, 0.05, 1)
+light_energy = 1.4
+omni_range = 3.5

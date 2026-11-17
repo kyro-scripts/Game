@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/sandbox_blockout.gd" id="1_blockout"]
+[ext_resource type="Script" path="res://scripts/world/dummy_spawner.gd" id="2_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/dummy_walker.tscn" id="3_walker"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/dummy_turret.tscn" id="4_turret"]
+
+[sub_resource type="Environment" id="Environment_castle"]
+background_mode = 1
+background_color = Color(0.008, 0.008, 0.01, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.6, 0.62, 1)
+ambient_light_energy = 0.22
+tonemap_mode = 3
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.05
+glow_hdr_threshold = 1.2
+fog_enabled = true
+fog_light_color = Color(0.02, 0.02, 0.024, 1)
+fog_density = 0.018
+ssao_enabled = true
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 0.85
+
+[node name="MovementSandbox" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_castle")
+
+[node name="Blockout" type="Node3D" parent="."]
+script = ExtResource("1_blockout")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+
+[node name="Teleports" type="Node3D" parent="."]
+
+[node name="Speed hall" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+
+[node name="Downhill ramp" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, -57)
+
+[node name="Door gallery" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -80)
+
+[node name="Arena" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -165)
+
+[node name="Spawners" type="Node3D" parent="."]
+
+[node name="StaticTarget" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 0, -10)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("3_walker")
+pursue = false
+
+[node name="PlatformTurret" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6, 2, -63)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("4_turret")
+
+[node name="ArenaWalkerA" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -12, 0, -185)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("3_walker")
+
+[node name="ArenaWalkerB" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12, 0, -185)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("3_walker")
+
+[node name="ArenaWalkerC" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -193)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("3_walker")
+
+[node name="ArenaTurretL" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -16, 0, -196)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("4_turret")
+
+[node name="ArenaTurretR" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16, 0, -196)
+script = ExtResource("2_spawner")
+enemy_scene = ExtResource("4_turret")

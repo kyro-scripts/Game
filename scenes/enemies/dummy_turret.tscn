@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/dummy_turret.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/enemies/dummy_turret.tres" id="2_data"]
+[ext_resource type="Script" path="res://scripts/enemies/face_rig.gd" id="3_face"]
+[ext_resource type="Script" path="res://scripts/enemies/hurtbox.gd" id="4_hurtbox"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_move"]
+radius = 0.3
+height = 1.9
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body_hit"]
+radius = 0.34
+height = 1.55
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_head_hit"]
+radius = 0.17
+
+[node name="DummyTurret" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_script")
+data = ExtResource("2_data")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+shape = SubResource("CapsuleShape3D_move")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="Head" type="Node3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.78, 0)
+
+[node name="Face" type="Node3D" parent="Visual/Head"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+script = ExtResource("3_face")
+
+[node name="BodyHurtbox" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_hurtbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BodyHurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.88, 0)
+shape = SubResource("CapsuleShape3D_body_hit")
+
+[node name="HeadHurtbox" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_hurtbox")
+is_head = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HeadHurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.78, 0)
+shape = SubResource("SphereShape3D_head_hit")
