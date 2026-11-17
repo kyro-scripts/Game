@@ -55,10 +55,10 @@ func build() -> void:
 	_root.name = "Generated"
 	add_child(_root)
 
-	_floor_mat = Palette.lit(Color(0.07, 0.068, 0.072), 0.95)
-	_wall_mat = Palette.lit(Color(0.1, 0.098, 0.104), 0.9)
+	_floor_mat = Palette.lit(Color(0.17, 0.165, 0.17), 0.9)
+	_wall_mat = Palette.lit(Color(0.22, 0.215, 0.22), 0.88)
 	_pillar_mat = Palette.lit(Palette.BONE, 0.8)
-	_line_mat = Palette.lit(Color(0.2, 0.195, 0.2), 0.9)
+	_line_mat = Palette.lit(Color(0.38, 0.37, 0.36), 0.9)
 	_red_mat = Palette.emissive(Palette.RED, 0.9)
 
 	_build_speed_hall()
@@ -116,10 +116,10 @@ func _build_speed_hall() -> void:
 	# Harsh pools of white light.
 	z = -4.0
 	while z >= HALL_END + 4.0:
-		_spot(Vector3(0.0, 9.6, z), 3.2, 15.0, 38.0, Palette.PAPER, true)
+		_spot(Vector3(0.0, 9.6, z), 14.0, 24.0, 52.0, Palette.PAPER, true)
 		z -= 16.0
-	_omni(Vector3(-w * 0.5, 1.0, -28.0), Palette.RED_HOT, 1.2, 6.0)
-	_omni(Vector3(-5.0, 0.8, -84.0), Palette.RED_HOT, 1.0, 5.0)
+	_omni(Vector3(-w * 0.5, 1.0, -28.0), Palette.RED_HOT, 3.0, 6.0)
+	_omni(Vector3(-5.0, 0.8, -84.0), Palette.RED_HOT, 3.0, 5.0)
 
 	var dust := TimeScaledParticles.create_dust(Vector3(w, 4.0, 50.0), 220)
 	_root.add_child(dust)
@@ -144,8 +144,10 @@ func _build_door_gallery() -> void:
 		_root.add_child(door)
 		door.position = Vector3(0.0, 0.0, dz)
 		if i < DOOR_Z.size() - 1:
-			_omni(Vector3(0.0, CORRIDOR_HEIGHT - 0.4, dz - 7.5), Palette.PAPER, 2.0, 8.0)
-	_omni(Vector3(0.0, 2.0, -152.0), Palette.RED_HOT, 2.0, 9.0)
+			_omni(Vector3(0.0, CORRIDOR_HEIGHT - 0.4, dz - 7.5), Palette.PAPER, 5.0, 11.0)
+	_omni(Vector3(0.0, 2.0, -152.0), Palette.RED_HOT, 3.0, 9.0)
+	# A dim pool in front of the first door so it reads from the hall.
+	_omni(Vector3(0.0, CORRIDOR_HEIGHT - 0.4, HALL_END + 5.0), Palette.PAPER, 3.0, 9.0)
 
 
 func _build_arena() -> void:
@@ -164,10 +166,19 @@ func _build_arena() -> void:
 	_root.add_child(clock)
 	clock.position = Vector3(0.0, 8.0, ARENA_END + 0.15)
 
-	_spot(Vector3(0.0, 11.5, -180.0), 4.0, 16.0, 55.0, Palette.PAPER, true)
-	_omni(Vector3(0.0, 4.0, ARENA_END + 2.0), Palette.RED_HOT, 2.5, 12.0)
-	_omni(Vector3(-15.0, 9.0, -175.0), Palette.PAPER, 1.4, 14.0)
-	_omni(Vector3(15.0, 9.0, -185.0), Palette.PAPER, 1.4, 14.0)
+	_spot(Vector3(0.0, 11.5, -180.0), 14.0, 22.0, 60.0, Palette.PAPER, true)
+	# Harsh white light on the clock face; red stays low, near the floor.
+	var clock_light := SpotLight3D.new()
+	clock_light.light_color = Palette.PAPER
+	clock_light.light_energy = 10.0
+	clock_light.spot_range = 16.0
+	clock_light.spot_angle = 22.0
+	_root.add_child(clock_light)
+	clock_light.position = Vector3(0.0, 11.0, ARENA_END + 10.0)
+	clock_light.look_at_from_position(clock_light.position, Vector3(0.0, 8.0, ARENA_END), Vector3.UP)
+	_omni(Vector3(0.0, 0.6, ARENA_END + 3.0), Palette.RED_HOT, 3.0, 9.0)
+	_omni(Vector3(-15.0, 9.0, -175.0), Palette.PAPER, 4.0, 16.0)
+	_omni(Vector3(15.0, 9.0, -185.0), Palette.PAPER, 4.0, 16.0)
 
 	var dust := TimeScaledParticles.create_dust(Vector3(aw, 5.0, depth * 0.5), 260)
 	_root.add_child(dust)
@@ -222,7 +233,7 @@ func _floor_label(text: String, at: Vector3) -> void:
 	var l := Label3D.new()
 	l.text = text
 	l.font_size = 96
-	l.pixel_size = 0.01
+	l.pixel_size = 0.0055
 	l.modulate = Color(0.55, 0.53, 0.5)
 	l.outline_size = 0
 	l.rotation.x = -PI * 0.5

@@ -224,17 +224,20 @@ func _track_head(dt: float) -> void:
 func _build_placeholder_body() -> void:
 	# Tall, narrow, slightly too still. Dark robe, pale mask, a thin red sash.
 	var robe := Palette.lit(Palette.CHARCOAL, 0.9)
-	var body := Palette.capsule(0.27, 1.75, robe)
-	body.position.y = 0.95
+	var body := Palette.capsule(0.26, 1.5, robe)
+	body.position.y = 0.78
 	visual.add_child(body)
-	var shoulders := Palette.box(Vector3(0.62, 0.12, 0.26), robe)
-	shoulders.position.y = 1.62
+	var shoulders := Palette.box(Vector3(0.6, 0.1, 0.24), robe)
+	shoulders.position.y = 1.48
 	visual.add_child(shoulders)
-	var sash := Palette.box(Vector3(0.56, 0.05, 0.3), Palette.emissive(Palette.RED, 0.35))
-	sash.position.y = 1.18
+	var neck := Palette.cylinder(0.05, 0.22, robe, 10)
+	neck.position.y = 1.6
+	visual.add_child(neck)
+	var sash := Palette.box(Vector3(0.54, 0.05, 0.28), Palette.emissive(Palette.RED, 0.35))
+	sash.position.y = 1.02
 	visual.add_child(sash)
 	for side in [-1.0, 1.0]:
-		var arm := Palette.capsule(0.06, 0.8, robe)
+		var arm := Palette.capsule(0.06, 0.78, robe)
 		arm.name = "ArmL" if side < 0.0 else "ArmR"
-		arm.position = Vector3(side * 0.34, 1.22, 0.0)
+		arm.position = Vector3(side * 0.33, 1.08, 0.0)
 		visual.add_child(arm)

@@ -77,6 +77,7 @@ func _ready() -> void:
 	max_slides = 6
 	max_health = RunManager.rules.player_max_health
 	health = max_health
+	($ViewmodelRenderer as ViewmodelRenderer).setup(camera)
 	weapon.setup(self, camera)
 	stopwatch.setup(self)
 	stopwatch_view.setup(self, stopwatch)

@@ -138,5 +138,5 @@ func _rebuild() -> void:
 	# Only one panel carries a small pale oval at eye height. Nobody knows why.
 	var oval := Palette.sphere(0.11, Palette.wax(), 12)
 	oval.scale = Vector3(0.8, 1.15, 0.25)
-	oval.position = Vector3(-half * 0.5 + 0.06, 1.62, thickness * 0.5 + 0.01)
+	oval.position = Vector3((half - 0.015) * 0.5 + 0.12, 1.62, thickness * 0.5 + 0.01)
 	_panels[0].add_child(oval)

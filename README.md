@@ -125,8 +125,8 @@ scripts/enemies    EnemyBase, FaceRig, Hurtbox, test dummies, Projectile
 scripts/world      BreachableDoor, PendulumClock, SandboxBlockout, spawners, debris
 scripts/ui         HUD, PostProcess, DebugOverlay, DebugMenu, RunEndScreen
 scenes/        main, player, enemies, door, sandbox
-tests/         headless gameplay tests (94 checks)
-tools/         validate_project.gd, run_tests.sh
+tests/         headless gameplay tests (98 checks)
+tools/         validate_project.gd, run_tests.sh, capture_screenshots.tscn
 docs/          DESIGN_NOTES.md: locked specs vs implementation defaults, architecture
 ```
 
@@ -135,6 +135,12 @@ docs/          DESIGN_NOTES.md: locked specs vs implementation defaults, archite
 ```bash
 tools/run_tests.sh /path/to/godot   # import, validate all files, run tests, smoke-run main
 ```
+
+For visual checks, `res://tools/capture_screenshots.tscn` boots the real game
+and saves PNGs of key moments to `user://screenshots/` (or `$SHOT_DIR`):
+spawn, a running jump, the obstacles, the door gallery, the arena, a mask
+close-up, firing, Borrow Time, Time Debt, low time and the run-end screen.
+It needs a real renderer, so run it without `--headless`.
 
 The tests drive the game the way a player would, through input actions,
 jumps and trigger pulls, and then check physical outcomes. Some examples:

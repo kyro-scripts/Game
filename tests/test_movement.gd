@@ -16,6 +16,20 @@ func _run_up(t: TestRunner, seconds: float = 0.8) -> void:
 	await t.seconds(seconds)
 
 
+func test_viewmodel_camera_follows_player_camera(t: TestRunner) -> void:
+	t.player.set_look(1.1, 0.3)
+	await t.physics(3)
+	await t.get_tree().process_frame
+	var renderer := t.player.get_node(^"ViewmodelRenderer") as ViewmodelRenderer
+	var vm_cam := renderer.get_camera()
+	var src := t.player.camera
+	t.check(vm_cam != null, "viewmodel camera exists")
+	t.check_le(vm_cam.global_position.distance_to(src.global_position), 0.001, "viewmodel camera sits at the player camera")
+	t.check_ge(vm_cam.global_basis.z.dot(src.global_basis.z), 0.999, "viewmodel camera looks where the player looks")
+	t.check((vm_cam.cull_mask & Palette.VIEWMODEL_LAYER) != 0 and (src.cull_mask & Palette.VIEWMODEL_LAYER) == 0,
+			"hands render only through the viewmodel camera")
+
+
 func test_run_reaches_max_speed_quickly(t: TestRunner) -> void:
 	var tuning := t.player.tuning
 	Input.action_press(&"move_forward")

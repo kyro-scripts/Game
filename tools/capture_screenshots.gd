@@ -53,10 +53,10 @@ func _ready() -> void:
 	var w := WALKER.instantiate() as DummyWalker
 	w.pursue = false
 	_main.level.add_child(w)
-	w.global_position = p.global_position + Vector3(0.0, -0.05, -2.6)
-	w.rotation.y = 0.0
+	w.global_position = p.global_position + Vector3(0.0, -0.05, -1.9)
+	w.rotation.y = PI
 	await _seconds(0.8)
-	p.set_look(0.0, deg_to_rad(4.0))
+	p.set_look(0.0, deg_to_rad(2.0))
 	await _seconds(0.3)
 	await _shot("07_face_closeup")
 

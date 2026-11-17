@@ -15,6 +15,10 @@ func setup(source: Camera3D) -> void:
 	_source = source
 
 
+func get_camera() -> Camera3D:
+	return _camera
+
+
 func _ready() -> void:
 	layer = 1
 	process_priority = 100  # after the player camera applies shake/roll

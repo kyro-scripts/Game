@@ -170,7 +170,7 @@ func _hide_flash() -> void:
 func _build_placeholder_model() -> void:
 	# A plain, heavy, old-fashioned sidearm silhouette in black with a red
 	# band at the muzzle, held by a pale hand. Proportions are placeholder.
-	var metal := Palette.lit(Palette.CHARCOAL, 0.45, 0.6)
+	var metal := Palette.lit(Color(0.3, 0.29, 0.3), 0.32, 0.55)
 	var barrel := Palette.box(Vector3(0.036, 0.042, 0.34), metal)
 	barrel.position = Vector3(0.0, 0.0, -0.13)
 	_model.add_child(barrel)
@@ -180,7 +180,7 @@ func _build_placeholder_model() -> void:
 	var frame := Palette.box(Vector3(0.042, 0.06, 0.12), metal)
 	frame.position = Vector3(0.0, -0.01, 0.06)
 	_model.add_child(frame)
-	var grip := Palette.box(Vector3(0.04, 0.13, 0.055), Palette.lit(Palette.BLACK, 0.8))
+	var grip := Palette.box(Vector3(0.04, 0.13, 0.055), Palette.lit(Palette.ASH, 0.8))
 	grip.position = Vector3(0.0, -0.085, 0.1)
 	grip.rotation.x = deg_to_rad(-18.0)
 	_model.add_child(grip)

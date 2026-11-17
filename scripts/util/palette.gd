@@ -70,6 +70,10 @@ static func wax() -> StandardMaterial3D:
 	m.rim_enabled = true
 	m.rim = 0.55
 	m.rim_tint = 0.25
+	# Faint self-illumination so pale faces read out of black rooms.
+	m.emission_enabled = true
+	m.emission = WAX
+	m.emission_energy_multiplier = 0.22
 	_cache["wax"] = m
 	return m
 
