@@ -82,6 +82,10 @@ func _ready() -> void:
 	stopwatch_view.setup(self, stopwatch)
 
 
+func _exit_tree() -> void:
+	_stop_slide_sound()
+
+
 # --- Input --------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:

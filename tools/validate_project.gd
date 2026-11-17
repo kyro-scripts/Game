@@ -6,7 +6,7 @@ extends SceneTree
 ##
 ## Exit code 0 = everything loaded.
 
-const ROOTS := ["res://autoload", "res://scripts", "res://scenes", "res://data", "res://shaders", "res://tests"]
+const ROOTS := ["res://autoload", "res://scripts", "res://scenes", "res://data", "res://shaders", "res://tests", "res://tools"]
 const EXTENSIONS := ["gd", "tscn", "tres", "gdshader"]
 
 

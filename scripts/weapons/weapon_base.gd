@@ -42,8 +42,12 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"fire"):
-		trigger()
+	if not event.is_action_pressed(&"fire"):
+		return
+	# A click that is grabbing the mouse back must not shoot.
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and DisplayServer.get_name() != "headless":
+		return
+	trigger()
 
 
 ## Request a shot (click). Buffered briefly so early clicks are not eaten.
