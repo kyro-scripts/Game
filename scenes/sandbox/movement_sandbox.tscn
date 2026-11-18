@@ -7,36 +7,36 @@
 
 [sub_resource type="Environment" id="Environment_castle"]
 background_mode = 1
-background_color = Color(0.006, 0.006, 0.008, 1)
+background_color = Color(0, 0, 0, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.6, 0.6, 0.64, 1)
-ambient_light_energy = 0.32
+ambient_light_color = Color(0.7, 0.7, 0.72, 1)
+ambient_light_energy = 0.14
 tonemap_mode = 3
-tonemap_exposure = 1.15
+tonemap_exposure = 1.1
 ssr_enabled = true
-ssr_max_steps = 56
-ssr_fade_in = 0.1
-ssr_fade_out = 2.5
+ssr_max_steps = 64
+ssr_fade_in = 0.08
+ssr_fade_out = 3.0
 ssao_enabled = true
-ssao_radius = 1.2
-ssao_intensity = 2.5
+ssao_radius = 1.4
+ssao_intensity = 2.0
 glow_enabled = true
-glow_intensity = 0.7
-glow_bloom = 0.06
-glow_hdr_threshold = 1.1
+glow_intensity = 0.85
+glow_bloom = 0.08
+glow_hdr_threshold = 1.0
 fog_enabled = true
-fog_light_color = Color(0.02, 0.02, 0.024, 1)
-fog_density = 0.006
+fog_light_color = Color(0, 0, 0, 1)
+fog_density = 0.008
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.016
-volumetric_fog_albedo = Color(0.85, 0.85, 0.86, 1)
-volumetric_fog_length = 48.0
-volumetric_fog_detail_spread = 1.6
-volumetric_fog_anisotropy = 0.4
-volumetric_fog_ambient_inject = 0.06
+volumetric_fog_density = 0.011
+volumetric_fog_albedo = Color(0.9, 0.9, 0.9, 1)
+volumetric_fog_length = 64.0
+volumetric_fog_detail_spread = 1.8
+volumetric_fog_anisotropy = 0.35
+volumetric_fog_ambient_inject = 0.0
 adjustment_enabled = true
-adjustment_contrast = 1.06
-adjustment_saturation = 0.9
+adjustment_contrast = 1.1
+adjustment_saturation = 1.0
 
 [node name="MovementSandbox" type="Node3D"]
 
@@ -47,56 +47,66 @@ environment = SubResource("Environment_castle")
 script = ExtResource("1_blockout")
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.05, 4.8)
 
 [node name="Teleports" type="Node3D" parent="."]
 
-[node name="Speed hall" type="Marker3D" parent="Teleports"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+[node name="Vestibule" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.05, 4.8)
 
-[node name="Downhill ramp" type="Marker3D" parent="Teleports"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, -57)
+[node name="The Narrowing" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.05, -6)
 
-[node name="Door gallery" type="Marker3D" parent="Teleports"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -80)
+[node name="Long Hall" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.05, -40)
 
-[node name="Arena" type="Marker3D" parent="Teleports"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -165)
+[node name="Dais" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.05, -78)
+
+[node name="Low chamber" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.05, -141)
+
+[node name="Repeating corridor" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -148)
+
+[node name="Clock chamber" type="Marker3D" parent="Teleports"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -210)
 
 [node name="Spawners" type="Node3D" parent="."]
 
 [node name="StaticTarget" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 0, -10)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6, 0, -44)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("3_walker")
 pursue = false
 
-[node name="PlatformTurret" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 6, 2, -63)
+[node name="DaisTurret" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1, 2, -83)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("4_turret")
 
-[node name="ArenaWalkerA" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -12, 0, -185)
+[node name="ChamberWalkerA" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -9, 0, -228)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("3_walker")
 
-[node name="ArenaWalkerB" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12, 0, -185)
+[node name="ChamberWalkerB" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9, 0, -231)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("3_walker")
 
-[node name="ArenaWalkerC" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, -193)
+[node name="ChamberWalkerC" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 1, 0, -239)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("3_walker")
 
-[node name="ArenaTurretL" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -16, 0, -196)
+[node name="ChamberTurretL" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -12, 0, -238)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("4_turret")
 
-[node name="ArenaTurretR" type="Marker3D" parent="Spawners"]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16, 0, -196)
+[node name="ChamberTurretR" type="Marker3D" parent="Spawners"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 13, 0, -236)
 script = ExtResource("2_spawner")
 enemy_scene = ExtResource("4_turret")
+

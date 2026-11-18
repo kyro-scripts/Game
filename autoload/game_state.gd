@@ -15,7 +15,7 @@ var invert_y: bool = false
 ## Base camera FOV in degrees (speed adds on top).
 var base_fov: float = 96.0
 ## Viewmodel camera FOV (kept fixed so hands don't warp at speed).
-var viewmodel_fov: float = 62.0
+var viewmodel_fov: float = 68.0
 ## Borrow Time input: hold (default) or toggle.
 var borrow_time_toggle_mode: bool = false
 

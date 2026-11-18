@@ -7,8 +7,9 @@ stopwatch in the other.
 
 **Engine:** Godot **4.7.x**, GDScript, desktop, keyboard + mouse.
 **Status:** **Phases A + B done:** movement sandbox, combat, run timer,
-Borrow Time and Time Debt, plus a realistic art pass on the map, the
-figures and the hands. Procedural floors (Phase C) haven't started yet,
+Borrow Time and Time Debt, plus a minimalist surreal-horror visual
+overhaul: the dream-castle sandbox, almost-human enemies, the Red Death,
+the held stopwatch and atmosphere. Procedural floors (Phase C) haven't started yet,
 on purpose: movement feel gets signed off first (see *Next step* below).
 
 ---
@@ -33,30 +34,17 @@ on purpose: movement feel gets signed off first (see *Next step* below).
 
 ### The sandbox (`scenes/sandbox/movement_sandbox.tscn`)
 
-You spawn in front of the sealed entrance doors of the **great hall**.
-Teleport between areas from F1 → Teleport.
+An impossible, minimal dream-castle, built from code. The run seed varies its
+inconsistencies. Teleport between spaces from F1 → Teleport.
 
-* **Great hall** (0 → −100 m). A pointed stone vault on ribbed piers, a
-  black-and-white marble floor, scarlet lancet windows on the left that throw
-  red shafts across the floor, candle sconces and red velvet drapes on the
-  right, and three iron chandeliers. The obstacles:
-  * a stone **balustrade** to jump,
-  * a half-lowered **portcullis** to slide under,
-  * a ramp up to a stone dais with a long ramp down, for sliding downhill,
-  * a low passage under an oak lintel, for a sustained slide.
-
-  A static target dummy stands at 10 m, and a lantern-turret dummy waits on
-  the dais.
-* **Door gallery** (−100 → −160 m). A tight passage with stonework and an
-  oak-beamed ceiling. It holds **4 breachable doors** of iron-strapped oak in
-  stone frames, one with a porcelain mask nailed to it. Hit one above about
-  7 m/s and it bursts. A slow touch makes it creak open, which takes long
-  enough to feel like a penalty.
-* **Ballroom** (−160 → −200 m). Stone columns, a timber ceiling, a great
-  candle chandelier, scarlet windows on both sides, and a tall-case pendulum
-  clock that runs on *world* time, so Borrow Time shows up everywhere. It
-  holds 3 walker dummies and 2 lantern turrets, which respawn 4 s after they
-  die.
+| Space | What it is | Movement test |
+|---|---|---|
+| **Vestibule** | A crooked, low room. The door you came in by is too small to have fitted through, and a tall slit leads on. | — |
+| **The Narrowing** | A twisting corridor that tightens as its ceiling sinks. Dim chalk lines mark the floor edges. One dark stretch is lit only by light leaking under a door. | **jump** the beam |
+| **The Long Hall** | Massive (32 × 92 m), empty and black, with isolated pools of white light from far overhead. Eleven identical doors along one wall leak light; one is lifted off the floor and one is missing. There's a door nine metres up the other wall, a single high **red** window framed by jagged black forms, and a white chair that moves when you aren't looking. | **slide** under the black monolith; the **dais** is for sliding downhill; the far wall's **long low slot** is for a sustained slide |
+| **Low chamber** | A 2.9 m ceiling after the hall's thirty, and a pillar far too thin for its load. | — |
+| **The Repeating Corridor** | Four identical bays, each with one bulb and a side door. One bay's bulb is on the wrong side, one bay is dark, one side door is on the other wall, and one door has a face fixed to it. | **4 breachable doors** |
+| **Clock chamber** | An irregular room with a checkerboard floor that slowly swells out of true. Pillars are the wrong sizes, one leans, and one hangs from nothing. The pendulum clock is framed by jagged black forms. | combat (dummies respawn) |
 
 The dummies are **test dummies**, not canon enemies. The Rusher, Watcher and
 Bellkeeper come in Phase D, built on the same `EnemyBase`.
@@ -85,36 +73,58 @@ Bellkeeper come in Phase D, built on the same `EnemyBase`.
   (`MovementTuning`). You can tune it live in **F1 → Live tuning** and use
   **Save tuning** to write it back.
 
-### Look (art pass)
-Everything is built procedurally in code. There are no imported assets, so
-nothing needs licensing, and each piece can be swapped for real art later.
+### Look: minimalist surreal horror
+**Black dominates. White defines the shapes you need: faces, hands, edges,
+doors and light. Red is rare and means danger, the supernatural or the Red
+Death.** Everything is procedural; nothing is imported.
 
-* **Materials** (`shaders/`). World-space shaders for:
-  * ashlar masonry, with irregular courses, recessed mortar, chipped edges,
-    floor grime and water streaks;
-  * polished black-and-white marble, with veins, grout and worn patches;
-  * dark oak planks;
-  * scarlet stained glass in diamond quarries;
-  * velvet cloth that sways on *world* time, so it hangs still during
-    Borrow Time.
-* **Architecture and props** (`MeshKit`, `CastleProps`). Lathed columns with
-  bases and capitals, a pointed vault with ribs, mouldings, pointed-arch
-  frames and lancet windows cut into the walls, balustrades, a portcullis,
-  sconces and chandeliers with flickering candles, drapes and a tall-case
-  clock.
-* **Figures.** Hooded velvet robes that glide (no legs are ever seen), bell
-  sleeves and pale kid gloves. The masks are sculpted glazed porcelain, and
-  their smile, neutral and open-mouthed expressions snap from one to the next
-  instantly.
-* **Hands.** A silver pocket watch with a domed crystal, an enamel dial with
-  Roman numerals, garnet charge jewels and a chain. The pistol is
-  flintlock-style, with an octagonal barrel and a walnut stock.
-* **Lighting.** Volumetric fog, red light shafts through the windows,
-  screen-space reflections on the marble, SSAO and candle flicker. The final
-  grade keeps only clearly red light red; everything else is monochrome.
-* **Performance.** Volumetric fog and about 14 shadowed spot lights need a
-  Forward+ capable GPU. If frame rate suffers, untick `window_shafts` on the
-  sandbox's `Blockout` node.
+* **Materials** (`shaders/`):
+  * `painted_surface`: rough, imperfect brushwork, with drifting stroke
+    direction, dry-brush ridges, drips, rare cracks and wet sheen. It has no
+    bricks.
+  * `lacquer_floor`: near-mirror black, so isolated lights double in it. It
+    has an optional warped checkerboard.
+  * `skin`: painted, waxy and faintly self-lit.
+  * `cloth`: rough painted streaks and a pale edge, so dark figures read
+    against black.
+* **Lighting:** ambient light is almost nothing. You get islands of white:
+  bare bulbs on long cords, tight overhead pools with volumetric shafts, light
+  leaking under doors, and dim chalk lines along floor edges and openings so
+  geometry reads at speed. The watch's luminous dial lights the space just
+  around you.
+* **Enemies:** almost-human, something imitating a person.
+  * Eyes are slightly too far apart and too low, the eyebrows too high, the
+    nose too short. The mouth is too wide and too close to the nose, with
+    corners turned up too sharply and a sliver of too many teeth.
+  * Real eyeballs stare at you. One is set a few degrees off, and now and then
+    both snap to stare at nothing.
+  * Every face blinks together, rarely.
+  * Bodies are stiff, like stop-motion, while the heads glide. Heads sometimes
+    snap to a wrong tilt. Necks are too long and arms hang to the knees.
+  * The irises burn **red** only when one means to hurt you.
+* **The Guest in Red** (the Red Death), after the reference: a rough-painted
+  red hood, a white clock where the face should be with hands running
+  backwards, and jagged black forms in a red haze. It is a sighting, not a
+  fight. It's gone if you approach or hold your gaze.
+* **Atmosphere** (`AtmosphereDirector`). Silence is the default, with only a
+  faint pressure tone and clocks somewhere in the dark, out of step with your
+  watch. Every 18–42 s one unexplained thing happens:
+  * a Red Death sighting;
+  * a light dying for a moment;
+  * a whisper, distant slam, drone, wrong note or breathing;
+  * a door's light turning red;
+  * every clock stopping at once.
+
+  None of these are jumpscares. You can trigger each from F1 → Atmosphere.
+* **The stopwatch is held.** A gloved hand's jointed fingers curl round the
+  case and the thumb sits on the crown. The thumb visibly presses the crown,
+  which depresses. A white cuff and a sleeve lead back toward the camera.
+  Spring-driven motion answers everything you do: it lifts toward your eyes
+  to read during Borrow Time, dips at a sprint, leans into strafes and slides,
+  lags jumps, jolts on landings and shots, rattles in debt and trembles on low
+  time.
+* **Performance:** volumetric fog plus about 9 shadowed spot lights. If needed,
+  untick `window_shafts` on the sandbox's `Blockout` node.
 
 ### Combat, time and the run (Phase B)
 * **Hitscan placeholder sidearm.** Rays hit enemy *hurtboxes*, and head hits
@@ -179,9 +189,14 @@ tools/run_tests.sh /path/to/godot   # import, validate all files, run tests, smo
 
 For visual checks, `res://tools/capture_screenshots.tscn` boots the real game
 and saves PNGs of key moments to `user://screenshots/` (or `$SHOT_DIR`):
-spawn, a running jump, a slide under the gate, the downhill ramp, the door
-gallery, a door mid-breach, the arena, a mask close-up, firing, a kill,
-Borrow Time, Time Debt, low time, the debug menu and the run-end screen.
+* every space in the sequence;
+* the jump, the slide under the monolith and a door bursting;
+* the red window and a Red Death sighting;
+* a face close-up and a face macro;
+* a red-eyed attack windup, firing and a kill;
+* Borrow Time with the watch raised, Time Debt and low time;
+* the debug menu and the run-end screen.
+
 Short-lived effects are photographed in engine slow motion.
 It needs a real renderer, so run it without `--headless`.
 

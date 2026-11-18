@@ -15,10 +15,12 @@ const TURRET_SCENE := preload("res://scenes/enemies/dummy_turret.tscn")
 var player: Player
 var level: Node3D
 
+var atmosphere: AtmosphereDirector
+
 var _menu: DebugMenu
 var _pause_layer: CanvasLayer
 var _paused: bool = false
-var _ambience: Node
+var _ambience: Array[Node] = []
 
 
 func _ready() -> void:
@@ -26,6 +28,9 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	TimeDirector.reset()
 	Engine.time_scale = 1.0
+	# The run (and its seed) exists before the level is built, so the level's
+	# inconsistencies vary per run.
+	RunManager.start_run(run_rules)
 
 	level = level_scene.instantiate() as Node3D
 	level.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -58,15 +63,23 @@ func _ready() -> void:
 	_build_pause_layer()
 	_register_debug_actions()
 
+	atmosphere = AtmosphereDirector.new()
+	atmosphere.name = "Atmosphere"
+	atmosphere.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(atmosphere)
+	_register_atmosphere_actions()
+
 	Events.run_ended.connect(_on_run_ended)
-	RunManager.start_run(run_rules)
-	_ambience = AudioDirector.play_loop(&"room_tone", null, -10.0, AudioDirector.BUS_AMBIENCE)
+	# Oppressive near-silence: a faint pressure under everything.
+	_ambience.append(AudioDirector.play_loop(&"pressure", null, -18.0, AudioDirector.BUS_AMBIENCE))
+	_ambience.append(AudioDirector.play_loop(&"room_tone", null, -30.0, AudioDirector.BUS_AMBIENCE))
 	_capture_mouse()
 
 
 func _exit_tree() -> void:
-	if _ambience != null and is_instance_valid(_ambience):
-		_ambience.queue_free()
+	for a in _ambience:
+		if a != null and is_instance_valid(a):
+			a.queue_free()
 
 
 func _notification(what: int) -> void:
@@ -163,6 +176,15 @@ func _register_debug_actions() -> void:
 			if marker is Node3D:
 				var m := marker as Node3D
 				GameState.register_debug_action("Teleport", String(m.name), func() -> void: _teleport(m))
+
+
+func _register_atmosphere_actions() -> void:
+	for kind: StringName in [&"guest", &"light_dies", &"sound", &"door_red", &"silence"]:
+		var label := "Guest in Red sighting" if kind == &"guest" else String(kind).replace("_", " ").capitalize()
+		GameState.register_debug_action("Atmosphere", label, func() -> void:
+			if not atmosphere.trigger(kind):
+				print("Atmosphere: '%s' has no valid place to happen from here." % kind)
+		)
 
 
 func _spawn_in_front(scene: PackedScene, pursue: bool) -> void:

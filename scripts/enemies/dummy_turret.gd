@@ -49,8 +49,10 @@ func _tick_behaviour(dt: float) -> void:
 func _enter_state(s: State) -> void:
 	if s == State.ATTACK:
 		face.set_expression(FaceRig.Mood.OPEN)
+		face.set_danger(true)
 	else:
 		face.set_expression(FaceRig.Mood.SMILE)
+		face.set_danger(false)
 		_set_glow(0.6)
 
 
@@ -79,7 +81,7 @@ func _build_lantern() -> void:
 	# An iron lantern with scarlet glass, hanging from the right glove.
 	var iron := CastleMaterials.iron()
 	var holder := Node3D.new()
-	holder.position = Vector3(0.31, 0.56, -0.06)
+	holder.position = Vector3(0.24, 0.42, -0.04)
 	visual.add_child(holder)
 	_lantern_mat = Palette.unique(Palette.emissive(Palette.RED_HOT, 0.6))
 	_lantern = Palette.box(Vector3(0.13, 0.18, 0.13), _lantern_mat)

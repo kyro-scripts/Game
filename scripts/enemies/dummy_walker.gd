@@ -89,6 +89,7 @@ func _enter_state(s: State) -> void:
 		State.ATTACK:
 			_struck = false
 			face.set_expression(FaceRig.Mood.OPEN)
+			face.set_danger(true)
 			AudioDirector.play(&"enemy_windup", eye_position(), -6.0, 1.0)
 		State.STAGGER:
 			face.set_expression(FaceRig.Mood.NEUTRAL)
@@ -99,6 +100,7 @@ func _enter_state(s: State) -> void:
 func _exit_state(s: State) -> void:
 	if s == State.ATTACK:
 		_set_arms(0.0)
+		face.set_danger(false)
 
 
 func _halt(dt: float) -> void:

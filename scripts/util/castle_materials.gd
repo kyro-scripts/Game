@@ -10,6 +10,9 @@ const MARBLE_SHADER := preload("res://shaders/marble_floor.gdshader")
 const WOOD_SHADER := preload("res://shaders/dark_wood.gdshader")
 const GLASS_SHADER := preload("res://shaders/stained_glass.gdshader")
 const CLOTH_SHADER := preload("res://shaders/cloth.gdshader")
+const PAINT_SHADER := preload("res://shaders/painted_surface.gdshader")
+const LACQUER_SHADER := preload("res://shaders/lacquer_floor.gdshader")
+const SKIN_SHADER := preload("res://shaders/skin.gdshader")
 
 static var _cache: Dictionary = {}
 
@@ -194,3 +197,137 @@ static func black_glass() -> StandardMaterial3D:
 	m.roughness = 0.05
 	_cache["black_glass"] = m
 	return m
+
+
+# --- Surreal set (minimal painted dream) --------------------------------------------
+
+## Near-black rough paint: the dominant surface of the castle.
+static func paint_black() -> ShaderMaterial:
+	return _shader("paint_black", PAINT_SHADER, {})
+
+
+## Slightly lifted charcoal paint for surfaces that must read in low light.
+static func paint_charcoal() -> ShaderMaterial:
+	return _shader("paint_charcoal", PAINT_SHADER, {
+		"paint_color": Color(0.17, 0.165, 0.17), "ground_color": Color(0.055, 0.055, 0.058),
+	})
+
+
+## Chalky off-white paint for the few shapes that should define a space.
+static func paint_white() -> ShaderMaterial:
+	return _shader("paint_white", PAINT_SHADER, {
+		"paint_color": Color(0.78, 0.76, 0.72), "ground_color": Color(0.36, 0.35, 0.33),
+		"stroke_contrast": 0.35, "crack_amount": 0.3, "drip_amount": 0.25, "roughness_base": 0.9,
+	})
+
+
+static func lacquer() -> ShaderMaterial:
+	return _shader("lacquer", LACQUER_SHADER, {})
+
+
+## A checkerboard whose tiles slowly swell and drift out of true.
+static func lacquer_checker(warp: float = 1.0) -> ShaderMaterial:
+	return _shader("lacquer_checker_%.2f" % warp, LACQUER_SHADER, {"checker": true, "tile_warp": warp})
+
+
+## Per-face skin (unique: it flashes on hits).
+static func skin() -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = SKIN_SHADER
+	return m
+
+
+static func eye_white() -> StandardMaterial3D:
+	if _cache.has("eye_white"):
+		return _cache["eye_white"]
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.86, 0.85, 0.82)
+	m.roughness = 0.08
+	m.emission_enabled = true
+	m.emission = Color(0.86, 0.85, 0.82)
+	m.emission_energy_multiplier = 0.18
+	_cache["eye_white"] = m
+	return m
+
+
+## Per-face iris (unique: it burns red when the face means harm).
+static func iris() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.015, 0.015, 0.018)
+	m.roughness = 0.05
+	m.emission_enabled = true
+	m.emission = Color(0.95, 0.05, 0.03)
+	m.emission_energy_multiplier = 0.0
+	return m
+
+
+static func teeth() -> StandardMaterial3D:
+	if _cache.has("teeth"):
+		return _cache["teeth"]
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.8, 0.78, 0.72)
+	m.roughness = 0.3
+	m.emission_enabled = true
+	m.emission = Color(0.8, 0.78, 0.72)
+	m.emission_energy_multiplier = 0.1
+	_cache["teeth"] = m
+	return m
+
+
+## Pure, unlit black: jagged graphic forms that cut holes in the light.
+static func void_black() -> StandardMaterial3D:
+	if _cache.has("void_black"):
+		return _cache["void_black"]
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.0, 0.0, 0.0)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.disable_fog = true
+	_cache["void_black"] = m
+	return m
+
+
+## Bare bulb filament glass.
+static func bulb() -> StandardMaterial3D:
+	if _cache.has("bulb"):
+		return _cache["bulb"]
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.0, 0.98, 0.94)
+	m.emission_enabled = true
+	m.emission = Color(1.0, 0.97, 0.92)
+	m.emission_energy_multiplier = 6.0
+	_cache["bulb"] = m
+	return m
+
+
+## A sliver of light under a door, or a line drawn in light.
+static func light_line(color: Color = Color(0.95, 0.94, 0.9), energy: float = 3.0) -> StandardMaterial3D:
+	var key := "light_line_%s_%.1f" % [color.to_html(), energy]
+	if _cache.has(key):
+		return _cache[key]
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = color
+	m.emission_enabled = true
+	m.emission = color
+	m.emission_energy_multiplier = energy
+	_cache[key] = m
+	return m
+
+
+## Dark robe with a faint pale edge so the figure reads against black.
+static func robe_dark() -> ShaderMaterial:
+	return _shader("robe_dark", CLOTH_SHADER, {
+		"cloth_color": Color(0.05, 0.046, 0.05), "anchor_y": 1.6, "sway_amount": 0.015,
+		"rim_light": 0.45, "paint_streaks": 0.4,
+	})
+
+
+## The Red Death's robe: rough-painted, violent red.
+static func robe_red() -> ShaderMaterial:
+	return _shader("robe_red", CLOTH_SHADER, {
+		"cloth_color": Color(0.62, 0.03, 0.025), "anchor_y": 2.2, "sway_amount": 0.05,
+		"sway_speed": 0.45, "rim_light": 0.2, "rim_color": Color(1.0, 0.25, 0.2), "paint_streaks": 1.0,
+		"sheen": 0.3,
+	})

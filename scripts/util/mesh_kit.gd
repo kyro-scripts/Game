@@ -340,6 +340,171 @@ static func _sculpt(p: Vector3, smile: float, open: float) -> Vector3:
 	return q + Vector3(0.0, 0.0, dz * front)
 
 
+# --- Almost-human face -------------------------------------------------------------------
+# A head that is trying to be human and getting it slightly wrong. All
+# proportions are in unit-sphere front coordinates (x, y in -1..1).
+
+const FACE_EYE_X := 0.44        # too far apart (human ~0.33)
+const FACE_EYE_Y := -0.08       # too low (human ~+0.05)
+const FACE_MOUTH_Y := -0.44     # too close to the nose
+const FACE_MOUTH_W := 0.47      # too wide
+const FACE_SCALE := Vector3(0.074, 0.122, 0.096)
+
+
+## Head mesh with vertex-colour shading. smile 0..1 lifts the corners too
+## sharply; open 0..1 drops the jaw further than a jaw should go.
+static func face_mesh(smile: float = 1.0, open: float = 0.0, rings: int = 34, segments: int = 44) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var pos: Array[PackedVector3Array] = []
+	var cols: Array[PackedColorArray] = []
+	for i in rings + 1:
+		var phi := float(i) / rings * PI
+		var prow := PackedVector3Array()
+		var crow := PackedColorArray()
+		for sgi in segments + 1:
+			# Offset by PI so the mesh seam runs down the back of the head.
+			var theta := float(sgi) / segments * TAU + PI
+			var p := Vector3(sin(phi) * sin(theta), cos(phi), sin(phi) * cos(theta))
+			prow.append(_face_shape(p, smile, open))
+			crow.append(_face_paint(p, smile, open))
+		pos.append(prow)
+		cols.append(crow)
+	for i in rings:
+		for sgi in segments:
+			var a := pos[i][sgi]
+			var b := pos[i + 1][sgi]
+			var c := pos[i + 1][sgi + 1]
+			var d := pos[i][sgi + 1]
+			var facing := (a + b + c + d) * 0.25
+			_tri_col(st, a, b, c, cols[i][sgi], cols[i + 1][sgi], cols[i + 1][sgi + 1], facing)
+			_tri_col(st, a, c, d, cols[i][sgi], cols[i + 1][sgi + 1], cols[i][sgi + 1], facing)
+	st.generate_normals()
+	return st.commit()
+
+
+## World-space (head-local) point on the face surface at front coords (x, y).
+static func face_point(x: float, y: float, smile: float = 1.0, open: float = 0.0) -> Vector3:
+	var z := sqrt(maxf(1.0 - x * x - y * y, 0.0))
+	return _face_shape(Vector3(x, y, z), smile, open)
+
+
+## Mouth-line height (front coords) at horizontal position x for a smile.
+static func face_mouth_y(x: float, smile: float) -> float:
+	var k := clampf(absf(x) / FACE_MOUTH_W, 0.0, 1.2)
+	return FACE_MOUTH_Y + smile * 0.17 * pow(k, 2.6)
+
+
+static func _face_shape(p: Vector3, smile: float, open: float) -> Vector3:
+	var q := Vector3(p.x * FACE_SCALE.x, p.y * FACE_SCALE.y, p.z * FACE_SCALE.z)
+	if p.y < 0.0:
+		q.x *= 1.0 + p.y * 0.34          # narrow, tapering jaw
+		q.y *= 1.0 + 0.1 * smoothstep(-0.5, -1.0, p.y) + open * 0.18 * smoothstep(-0.35, -0.9, p.y)
+	if p.z < 0.0:
+		q.z *= 0.86
+	var front := clampf(p.z, 0.0, 1.0)
+	if front <= 0.0:
+		return q
+	var x := p.x
+	var y := p.y
+	var ax := absf(x)
+	var dz := 0.0
+	# Forehead: tall and a little too smooth.
+	dz += 0.004 * _gauss(x * x * 0.5 + (y - 0.45) * (y - 0.45), 0.35)
+	# Sockets.
+	dz -= 0.013 * _gauss((ax - FACE_EYE_X) * (ax - FACE_EYE_X) + (y - FACE_EYE_Y) * (y - FACE_EYE_Y) * 1.5, 0.14)
+	dz += 0.004 * _gauss((ax - FACE_EYE_X) * (ax - FACE_EYE_X) * 0.8 + (y - FACE_EYE_Y - 0.2) * (y - FACE_EYE_Y - 0.2) * 6.0, 0.15)
+	# A short, narrow nose.
+	var nose_top := FACE_EYE_Y + 0.02
+	var nose_tip := FACE_EYE_Y - 0.24
+	if y < nose_top and y > nose_tip - 0.08:
+		var t := clampf((nose_top - y) / (nose_top - nose_tip), 0.0, 1.0)
+		dz += 0.012 * t * _gauss(x * x * 30.0, 0.18)
+	dz += 0.006 * _gauss(x * x * 14.0 + (y - nose_tip) * (y - nose_tip) * 20.0, 0.14)
+	# High cheekbones, hollow beneath.
+	dz += 0.005 * _gauss((ax - 0.5) * (ax - 0.5) * 2.0 + (y - FACE_EYE_Y + 0.08) * (y - FACE_EYE_Y + 0.08) * 4.0, 0.2)
+	dz -= 0.006 * _gauss((ax - 0.52) * (ax - 0.52) * 2.5 + (y - FACE_MOUTH_Y - 0.1) * (y - FACE_MOUTH_Y - 0.1) * 5.0, 0.16)
+	# Thin lips along a mouth line whose corners turn up too sharply.
+	var my := y - face_mouth_y(x, smile)
+	var inside := 1.0 - smoothstep(FACE_MOUTH_W * 0.9, FACE_MOUTH_W * 1.05, ax)
+	dz += 0.0035 * _gauss(my * my * 260.0, 0.35) * inside
+	var slit := (0.006 + open * 0.032) * _gauss(my * my * (300.0 - open * 270.0), 0.25) * inside
+	dz -= slit
+	# A long, pointed chin.
+	dz += 0.008 * _gauss(x * x * 4.0 + (y + 0.82) * (y + 0.82) * 5.0, 0.2)
+	return q + Vector3(0.0, 0.0, dz * front)
+
+
+static func _face_paint(p: Vector3, smile: float, open: float) -> Color:
+	var v := 0.86
+	var front := clampf(p.z, 0.0, 1.0)
+	var mottled := (sin(p.x * 91.0 + p.y * 37.0) * sin(p.y * 53.0 - p.z * 29.0)) * 0.035
+	v += mottled
+	if front > 0.0:
+		var x := p.x
+		var y := p.y
+		var ax := absf(x)
+		# Bruised sockets and too-dark under-eyes.
+		v -= 0.55 * _gauss((ax - FACE_EYE_X) * (ax - FACE_EYE_X) + (y - FACE_EYE_Y) * (y - FACE_EYE_Y) * 1.3, 0.13) * front
+		v -= 0.12 * _gauss((ax - FACE_EYE_X) * (ax - FACE_EYE_X) * 1.5 + (y - FACE_EYE_Y + 0.14) * (y - FACE_EYE_Y + 0.14) * 9.0, 0.12) * front
+		# Fine features (eyebrows, nostrils, mouth, teeth) are painted per
+		# pixel in skin.gdshader; the mesh carries only broad shading.
+	v = clampf(v, 0.04, 1.0)
+	return Color(v, v * 0.985, v * 0.96)
+
+
+static func _tri_col(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
+		ca: Color, cb: Color, cc: Color, facing: Vector3) -> void:
+	var n := (a - c).cross(a - b)
+	if n.length_squared() < 1e-16:
+		return
+	if n.dot(facing) < 0.0:
+		var tmp := b
+		b = c
+		c = tmp
+		var tc := cb
+		cb = cc
+		cc = tc
+	st.set_color(ca)
+	st.add_vertex(a)
+	st.set_color(cb)
+	st.add_vertex(b)
+	st.set_color(cc)
+	st.add_vertex(c)
+
+
+# --- Graphic forms ----------------------------------------------------------------------
+
+## A jagged, torn shape (like a black brushstroke) in the XY plane, extruded
+## thinly. Deterministic for a given seed.
+static func jagged_shard(width: float, height: float, seed: int, spikes: int = 14, depth: float = 0.03) -> ArrayMesh:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var pts := PackedVector2Array()
+	for i in spikes:
+		var a := float(i) / spikes * TAU
+		var r := rng.randf_range(0.45, 1.0) if i % 2 == 0 else rng.randf_range(0.15, 0.55)
+		pts.append(Vector2(cos(a) * width * 0.5 * r, sin(a) * height * 0.5 * r))
+	return extrude_polygon(pts, depth)
+
+
+## An irregular pointed opening: sides of unequal height, a lean, a skewed
+## apex. For CSG cut-outs and frames.
+static func irregular_arch_opening(width: float, spring: float, rise: float, lean: float, skew: float, segments: int = 12) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var hw := width * 0.5
+	pts.append(Vector2(hw, 0.0))
+	var curve := pointed_arch_curve(width, rise, segments)
+	for i in range(curve.size() - 1, -1, -1):
+		var c := curve[i]
+		var side_h := spring * (1.0 + skew * signf(c.x) * 0.5)
+		var t := (c.y) / maxf(rise, 0.01)
+		var apex_shift := skew * width * 0.3 * t
+		pts.append(Vector2(c.x + lean * (c.y + side_h) * 0.12 + apex_shift, c.y + side_h))
+	pts.append(Vector2(-hw, 0.0))
+	return pts
+
+
 # --- Internals --------------------------------------------------------------------------
 
 ## Emit a quad as two triangles whose front faces point along `facing`.

@@ -28,6 +28,13 @@ var target: Player
 @onready var face: FaceRig = $Visual/Head/Face
 
 var _head_yaw: float = 0.0
+## Stiff motion: the visible body only updates its facing in discrete steps
+## (stop-motion), while the head glides smoothly. Collision stays smooth.
+const STEP_INTERVAL := 0.12
+var _visual_yaw: float = 0.0
+var _step_timer: float = 0.0
+var _tilt_timer: float = 3.0
+var _tilt_hold: float = 0.0
 var _knockback: Vector3 = Vector3.ZERO
 var _hurtboxes: Array[Hurtbox] = []
 var _gravity: float = 22.0
@@ -47,6 +54,33 @@ func _ready() -> void:
 			_hurtboxes.append(child)
 	if visual.get_child_count() <= 1:  # only the Head anchor
 		_build_placeholder_body()
+	_visual_yaw = global_rotation.y
+
+
+func _process(delta: float) -> void:
+	if state == State.DEAD:
+		return
+	var dt := TimeDirector.scaled(TimeDirector.Channel.ANIMATION, delta)
+	# Stepped body facing: hold, then snap to the true heading.
+	var body_yaw := global_rotation.y
+	_step_timer -= dt
+	if _step_timer <= 0.0:
+		_visual_yaw = body_yaw
+		_step_timer = STEP_INTERVAL * randf_range(0.8, 1.3)
+	visual.rotation.y = wrapf(_visual_yaw - body_yaw, -PI, PI)
+	# A rigid forward lean while moving, like something being pushed.
+	var speed := Vector2(velocity.x, velocity.z).length()
+	visual.rotation.x = -clampf(speed / 40.0, 0.0, 0.16)
+	# Now and then the head snaps to a wrong tilt, holds, and snaps back.
+	_tilt_timer -= dt
+	if _tilt_hold > 0.0:
+		_tilt_hold -= dt
+		if _tilt_hold <= 0.0:
+			head.rotation.z = 0.0
+	elif _tilt_timer <= 0.0:
+		head.rotation.z = randf_range(0.28, 0.42) * (1.0 if randf() < 0.5 else -1.0)
+		_tilt_hold = randf_range(0.6, 1.4)
+		_tilt_timer = randf_range(5.0, 12.0)
 
 
 func _physics_process(real_delta: float) -> void:
@@ -149,7 +183,7 @@ func _death_effect(info: Dictionary) -> void:
 	if face != null:
 		var mask_drop := Debris.new()
 		mask_drop.mesh = FaceRig.mesh_for(FaceRig.Mood.SMILE)
-		mask_drop.material_override = CastleMaterials.porcelain()
+		mask_drop.material_override = CastleMaterials.skin()
 		mask_drop.rotation.x = -PI * 0.5  # lands face up
 		mask_drop.lifetime = 8.0
 		mask_drop.floor_y = global_position.y
@@ -211,7 +245,7 @@ func _track_head(dt: float) -> void:
 	var desired := 0.0
 	if target != null and state != State.IDLE:
 		var to := target.get_eye_position() - head.global_position
-		var local := global_basis.inverse() * to
+		var local := visual.global_basis.orthonormalized().inverse() * to
 		desired = clampf(atan2(-local.x, -local.z), deg_to_rad(-110.0), deg_to_rad(110.0))
 	# Constant angular speed, no easing: deliberately too smooth.
 	_head_yaw = move_toward(_head_yaw, desired, data.head_track_speed * dt)
@@ -219,33 +253,25 @@ func _track_head(dt: float) -> void:
 
 
 func _build_placeholder_body() -> void:
-	# A masque guest: a heavy hooded velvet robe that brushes the floor (they
-	# glide; no legs are ever seen), bell sleeves, pale kid gloves, a red cord.
-	var robe_mat := CastleMaterials.velvet(Color(0.07, 0.062, 0.068), 1.6, 0.02)
+	# Something wearing a person: narrow shoulders, a neck too long, arms that
+	# hang to the knees, long pale fingers. The robe glides; no legs are ever
+	# seen. Red is kept for danger, so nothing on the body is red.
+	var robe_mat := CastleMaterials.robe_dark()
 	visual.add_child(_mesh_node(_robe_mesh(), robe_mat))
-	var cord := MeshInstance3D.new()
-	var torus := TorusMesh.new()
-	torus.inner_radius = 0.255
-	torus.outer_radius = 0.285
-	cord.mesh = torus
-	cord.material_override = Palette.lit(Palette.RED, 0.6)
-	cord.position.y = 1.08
-	cord.scale = Vector3(1.0, 1.0, 0.85)
-	visual.add_child(cord)
-	var tassel := Palette.cylinder(0.012, 0.35, Palette.lit(Palette.RED, 0.6), 6)
-	tassel.position = Vector3(0.12, 0.9, -0.22)
-	visual.add_child(tassel)
+	var neck := Palette.cylinder(0.05, 0.34, CastleMaterials.robe_dark(), 12)
+	neck.position.y = 1.7
+	visual.add_child(neck)
 	var hood := _mesh_node(_hood_mesh(), robe_mat)
 	head.add_child(hood)
 	for side: float in [-1.0, 1.0]:
 		var arm := Node3D.new()
 		arm.name = "ArmL" if side < 0.0 else "ArmR"
-		arm.position = Vector3(side * 0.3, 1.5, 0.0)
-		arm.rotation.z = side * 0.06
+		arm.position = Vector3(side * 0.24, 1.5, 0.0)
+		arm.rotation.z = side * 0.04
 		visual.add_child(arm)
 		arm.add_child(_mesh_node(_sleeve_mesh(), robe_mat))
 		var hand := _glove(side)
-		hand.position = Vector3(0.0, -0.74, -0.02)
+		hand.position = Vector3(0.0, -0.86, -0.01)
 		arm.add_child(hand)
 
 
@@ -262,7 +288,7 @@ static func _robe_mesh() -> Mesh:
 			Vector2(0.21, 1.54), Vector2(0.12, 1.6), Vector2(0.07, 1.64)])
 	var folds := func(a: float, y: float) -> float:
 		var fold_amp := 0.07 * (1.0 - smoothstep(0.0, 1.15, y))
-		var shoulders := 0.2 * smoothstep(1.2, 1.5, y) * (1.0 - smoothstep(1.53, 1.64, y))
+		var shoulders := 0.06 * smoothstep(1.2, 1.5, y) * (1.0 - smoothstep(1.53, 1.64, y))
 		var c := cos(a)
 		return (1.0 + fold_amp * sin(a * 9.0 + sin(a * 3.0) * 1.5)) * (1.0 + shoulders * c * c) * (1.0 - 0.12 * absf(sin(a)) * smoothstep(0.9, 1.4, y))
 	_robe_cache = MeshKit.lathe(prof, 48, true, folds)
@@ -277,17 +303,18 @@ static func _hood_mesh() -> Mesh:
 			Vector2(0.195, 0.05), Vector2(0.18, 0.14), Vector2(0.13, 0.21), Vector2(0.06, 0.25), Vector2(0.0, 0.26)])
 	var drape := func(a: float, y: float) -> float:
 		return 1.0 + 0.04 * sin(a * 5.0 + y * 8.0)
-	_hood_cache = MeshKit.lathe(prof, 30, true, drape, false, -PI / 6.0, PI + PI / 6.0)
+	# Open 150 degrees at the front so the face is fully seen.
+	_hood_cache = MeshKit.lathe(prof, 30, true, drape, false, -PI / 12.0, PI + PI / 12.0)
 	return _hood_cache
 
 
 static func _sleeve_mesh() -> Mesh:
 	if _sleeve_cache != null:
 		return _sleeve_cache
-	var prof := PackedVector2Array([Vector2(0.12, -0.72), Vector2(0.1, -0.6), Vector2(0.075, -0.35),
-			Vector2(0.07, -0.1), Vector2(0.08, 0.04), Vector2(0.0, 0.07)])
+	var prof := PackedVector2Array([Vector2(0.075, -0.84), Vector2(0.07, -0.7), Vector2(0.06, -0.4),
+			Vector2(0.06, -0.1), Vector2(0.07, 0.04), Vector2(0.0, 0.07)])
 	var folds := func(a: float, y: float) -> float:
-		return 1.0 + 0.08 * sin(a * 5.0) * smoothstep(-0.3, -0.72, y)
+		return 1.0 + 0.06 * sin(a * 5.0) * smoothstep(-0.3, -0.84, y)
 	_sleeve_cache = MeshKit.lathe(prof, 20, true, folds)
 	return _sleeve_cache
 
@@ -300,8 +327,8 @@ func _glove(side: float) -> Node3D:
 	palm.position.y = -0.03
 	n.add_child(palm)
 	for i in 4:
-		var finger := Palette.capsule(0.009, 0.1 + 0.012 * float(i % 3), mat)
-		finger.position = Vector3(-0.027 + float(i) * 0.018, -0.115, 0.0)
+		var finger := Palette.capsule(0.0075, 0.15 + 0.015 * float(i % 3), mat)
+		finger.position = Vector3(-0.026 + float(i) * 0.0175, -0.14, 0.0)
 		n.add_child(finger)
 	var thumb := Palette.capsule(0.01, 0.07, mat)
 	thumb.position = Vector3(-side * 0.045, -0.05, -0.012)

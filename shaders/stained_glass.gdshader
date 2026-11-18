@@ -9,7 +9,7 @@ render_mode unshaded, cull_disabled;
 global uniform float world_time;
 uniform vec3 glass_color : source_color = vec3(0.85, 0.04, 0.03);
 uniform vec3 pale_color : source_color = vec3(0.9, 0.82, 0.78);
-uniform float energy = 3.0;
+uniform float energy = 5.0;
 uniform float quarry_size = 0.17;
 
 varying vec2 v_local;

@@ -301,3 +301,105 @@ static func great_doors(width: float, spring: float, rise: float) -> Node3D:
 		n.add_child(ring)
 	n.add_child(arch_frame(width, spring, rise, 0.22))
 	return n
+
+
+# --- Surreal set ------------------------------------------------------------------------
+
+## A bare bulb on a long black cord. Origin = ceiling attachment. The light is
+## short-ranged so it makes an island in the dark rather than lighting a room.
+static func bare_bulb(cord: float, energy: float = 4.5, light_range: float = 8.5, flicker: float = 0.04) -> Node3D:
+	var n := Node3D.new()
+	var wire := Palette.cylinder(0.004, cord, CastleMaterials.void_black(), 5)
+	wire.position.y = -cord * 0.5
+	wire.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	n.add_child(wire)
+	var glass := Palette.sphere(0.045, CastleMaterials.bulb(), 12)
+	glass.scale = Vector3(1.0, 1.25, 1.0)
+	glass.position.y = -cord - 0.05
+	glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	n.add_child(glass)
+	var light := FlickerLight.new()
+	light.base_energy = energy
+	light.flicker = flicker
+	light.speed = 0.6
+	light.omni_range = light_range
+	light.omni_attenuation = 1.5
+	light.light_color = Color(1.0, 0.98, 0.95)
+	light.shadow_enabled = false
+	light.position.y = -cord - 0.12
+	light.add_to_group(&"atmo_light")
+	n.add_child(light)
+	return n
+
+
+## A tight, hard-edged pool of white light falling from far overhead.
+static func light_pool(height: float, energy: float = 16.0, angle: float = 13.0, shadows: bool = true) -> SpotLight3D:
+	var s := SpotLight3D.new()
+	s.light_color = Color(1.0, 0.99, 0.97)
+	s.light_energy = energy
+	s.spot_range = height + 4.0
+	s.spot_angle = angle
+	s.spot_angle_attenuation = 0.35
+	s.spot_attenuation = 0.2
+	s.shadow_enabled = shadows
+	s.light_volumetric_fog_energy = 0.7
+	s.rotation.x = -PI * 0.5
+	s.add_to_group(&"atmo_light")
+	return s
+
+
+## A door that leads nowhere: a black recess in a thin chalk frame, with a
+## sliver of light underneath. Faces +Z. The sliver material is unique so the
+## atmosphere can turn it red.
+static func fake_door(width: float, height: float) -> Node3D:
+	var n := Node3D.new()
+	n.add_to_group(&"fake_door")
+	var recess := _box_mi(Vector3(width, height, 0.05), CastleMaterials.void_black(), Vector3(0.0, height * 0.5, -0.02))
+	n.add_child(recess)
+	var white := CastleMaterials.paint_white()
+	var t := 0.06
+	n.add_child(_box_mi(Vector3(t, height + t, 0.05), white, Vector3(-width * 0.5 - t * 0.5, (height + t) * 0.5, 0.01)))
+	n.add_child(_box_mi(Vector3(t, height + t, 0.05), white, Vector3(width * 0.5 + t * 0.5, (height + t) * 0.5, 0.01)))
+	n.add_child(_box_mi(Vector3(width + 2.0 * t, t, 0.05), white, Vector3(0.0, height + t * 0.5, 0.01)))
+	var sliver_mat := StandardMaterial3D.new()
+	sliver_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sliver_mat.albedo_color = Color(0.95, 0.94, 0.9)
+	sliver_mat.emission_enabled = true
+	sliver_mat.emission = Color(0.95, 0.94, 0.9)
+	sliver_mat.emission_energy_multiplier = 5.0
+	var sliver := _box_mi(Vector3(width - 0.04, 0.02, 0.02), sliver_mat, Vector3(0.0, 0.012, 0.012))
+	sliver.name = "Sliver"
+	sliver.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	n.add_child(sliver)
+	n.set_meta(&"sliver", sliver_mat)
+	return n
+
+
+## A plain white chair. Nobody sits in it.
+static func white_chair() -> Node3D:
+	var n := Node3D.new()
+	var white := CastleMaterials.paint_white()
+	n.add_child(_box_mi(Vector3(0.46, 0.04, 0.44), white, Vector3(0.0, 0.46, 0.0)))
+	n.add_child(_box_mi(Vector3(0.46, 0.62, 0.04), white, Vector3(0.0, 0.79, -0.2)))
+	for c: Vector2 in [Vector2(-0.2, -0.19), Vector2(0.2, -0.19), Vector2(-0.2, 0.19), Vector2(0.2, 0.19)]:
+		n.add_child(_box_mi(Vector3(0.035, 0.46, 0.035), white, Vector3(c.x, 0.23, c.y)))
+	return n
+
+
+## A cluster of jagged black brushstroke forms (unlit), for framing openings
+## and the Red Death. Faces +Z.
+static func jagged_cluster(count: int, size: float, seed: int) -> Node3D:
+	var n := Node3D.new()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	for i in count:
+		var w := size * rng.randf_range(0.4, 1.0)
+		var h := size * rng.randf_range(0.7, 1.6)
+		var mi := MeshInstance3D.new()
+		mi.mesh = MeshKit.jagged_shard(w, h, seed * 31 + i, rng.randi_range(10, 18))
+		mi.material_override = CastleMaterials.void_black()
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.position = Vector3(rng.randf_range(-size, size) * 0.6, rng.randf_range(-size, size) * 0.5, rng.randf_range(-0.2, 0.2))
+		mi.rotation.z = rng.randf_range(-0.8, 0.8)
+		n.add_child(mi)
+	return n

@@ -25,6 +25,7 @@ var _minute_hand: Node3D
 var _hour_hand: Node3D
 var _pendulum: Node3D
 var _last_revolution: int = 0
+var _last_side: float = 0.0
 
 
 func _ready() -> void:
@@ -37,7 +38,13 @@ func _process(_delta: float) -> void:
 	var t := TimeDirector.world_time
 	_minute_hand.rotation.z = -fposmod(t / minute_period, 1.0) * TAU
 	_hour_hand.rotation.z = -fposmod(t / (minute_period * 12.0), 1.0) * TAU
-	_pendulum.rotation.z = sin(t / swing_period * TAU) * swing_amplitude
+	var swing := sin(t / swing_period * TAU)
+	_pendulum.rotation.z = swing * swing_amplitude
+	# Tick at each end of the swing (it drifts against the stopwatch).
+	var side := signf(swing)
+	if side != _last_side and side != 0.0:
+		_last_side = side
+		AudioDirector.play(&"distant_tick", global_position + Vector3.UP * -3.0, -12.0, 0.8, AudioDirector.BUS_WORLD, 0.0)
 	var rev := int(floor(t / minute_period))
 	if chime_enabled and rev > _last_revolution:
 		_last_revolution = rev
@@ -56,14 +63,17 @@ func _rebuild() -> void:
 	root.set_meta(&"generated", true)
 	add_child(root)
 
-	var wood := CastleMaterials.wood()
-	var brass := CastleMaterials.brass()
+	# Black case, self-lit white dial, white pendulum: the clock is one of the
+	# few white shapes in the castle. Its minute hand is red.
+	var wood := CastleMaterials.paint_black()
+	var brass := CastleMaterials.paint_white()
 	var ink := Palette.lit(Palette.BLACK, 0.5)
 	var enamel := StandardMaterial3D.new()
 	enamel.albedo_color = Color(0.9, 0.88, 0.83)
 	enamel.roughness = 0.3
-	enamel.clearcoat_enabled = true
-	enamel.clearcoat = 0.6
+	enamel.emission_enabled = true
+	enamel.emission = Color(0.9, 0.88, 0.83)
+	enamel.emission_energy_multiplier = 0.35
 	var fz := 0.32  # dial plane, in front of the case
 
 	# Tall oak case with a pointed pediment, standing on the floor.

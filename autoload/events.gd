@@ -30,6 +30,12 @@ signal time_debt_ended()
 signal time_granted(seconds: float, reason: StringName)
 signal clock_chimed()
 
+# --- Atmosphere ---------------------------------------------------------------
+## An unexplained event happened (shift, light_dies, sound, guest, ...).
+signal atmosphere_event(kind: StringName)
+## The Red Death was seen (or let itself be seen).
+signal guest_sighted(at: Vector3)
+
 # --- Structure (used from Phase C onward) -----------------------------------
 signal room_entered(room: Node)
 signal room_cleared(room: Node)

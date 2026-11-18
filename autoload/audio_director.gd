@@ -244,6 +244,16 @@ func _build_library() -> void:
 	_library[&"jump"] = _wav(_whisper(0.1, false, 0.25))
 	_library[&"slide_loop"] = _wav(_friction_loop(), true)
 	_library[&"room_tone"] = _wav(_room_tone(), true)
+	# Atmosphere: sparse, unexplained, never loud.
+	_library[&"distant_tick"] = _wav(_distant_tick())
+	_library[&"drone_swell"] = _wav(_drone_swell())
+	_library[&"whisper"] = _wav(_whisper_voice())
+	_library[&"distant_slam"] = _wav(_distant_slam())
+	_library[&"wrong_note"] = _wav(_wrong_note())
+	_library[&"breath"] = _wav(_breath())
+	_library[&"light_click"] = _wav(_click_sound(900.0, 0.08, 0.7))
+	_library[&"guest_cue"] = _wav(_guest_cue())
+	_library[&"pressure"] = _wav(_pressure(), true)
 
 
 func _wav(samples: PackedFloat32Array, loop: bool = false) -> AudioStreamWAV:
@@ -509,3 +519,132 @@ func _room_tone() -> PackedFloat32Array:
 		else:
 			out[i] = raw[i]
 	return _normalize(out, 0.35)
+
+
+
+# --- Atmosphere synthesis ---------------------------------------------------------------
+
+func _distant_tick() -> PackedFloat32Array:
+	# A tick heard through walls: low-passed, with a short hollow tail.
+	var a := _buffer(0.25)
+	_add_click(a, 0.0, 1700.0, 1.0)
+	var lp := 0.0
+	for i in a.size():
+		lp += (a[i] - lp) * _lp_coeff(1100.0)
+		var t := float(i) / MIX_RATE
+		a[i] = lp + sin(TAU * 420.0 * t) * exp(-t * 30.0) * 0.08
+	return _normalize(a, 0.5)
+
+
+func _drone_swell() -> PackedFloat32Array:
+	# Two sub tones beating against each other, swelling and receding.
+	var a := _buffer(6.0)
+	var lp := 0.0
+	var n := a.size()
+	for i in n:
+		var t := float(i) / MIX_RATE
+		var p := float(i) / n
+		var env := sin(PI * p) * sin(PI * p)
+		lp += (_noise() - lp) * _lp_coeff(180.0)
+		a[i] = env * (sin(TAU * 41.0 * t) * 0.5 + sin(TAU * 43.3 * t) * 0.5 + sin(TAU * 82.6 * t) * 0.15 + lp * 0.6)
+	return _normalize(a, 0.6)
+
+
+func _whisper_voice() -> PackedFloat32Array:
+	# Breathy noise pushed through two moving formants: speech without words.
+	var a := _buffer(2.2)
+	var n := a.size()
+	var b1 := 0.0
+	var b1l := 0.0
+	var b2 := 0.0
+	var b2l := 0.0
+	for i in n:
+		var t := float(i) / MIX_RATE
+		var p := float(i) / n
+		var noise := _noise()
+		var f1 := 600.0 + 300.0 * sin(t * 7.0) + 200.0 * sin(t * 13.0)
+		var f2 := 1700.0 + 500.0 * sin(t * 5.0 + 1.0)
+		b1 += (noise - b1) * _lp_coeff(f1 * 1.3)
+		b1l += (b1 - b1l) * _lp_coeff(f1 * 0.7)
+		b2 += (noise - b2) * _lp_coeff(f2 * 1.2)
+		b2l += (b2 - b2l) * _lp_coeff(f2 * 0.8)
+		var syll := pow(0.5 + 0.5 * sin(t * TAU * 3.1 + sin(t * 4.0)), 2.0)
+		var env := smoothstep(0.0, 0.1, p) * (1.0 - smoothstep(0.75, 1.0, p))
+		a[i] = ((b1 - b1l) + (b2 - b2l) * 0.7) * syll * env
+	return _normalize(a, 0.45)
+
+
+func _distant_slam() -> PackedFloat32Array:
+	# A door somewhere far off: a dull thump and a long, dark tail.
+	var a := _buffer(3.0)
+	var phase := 0.0
+	var lp := 0.0
+	for i in a.size():
+		var t := float(i) / MIX_RATE
+		phase += TAU * lerpf(70.0, 40.0, minf(t * 2.0, 1.0)) / MIX_RATE
+		lp += (_noise() - lp) * _lp_coeff(260.0)
+		a[i] = sin(phase) * exp(-t * 9.0) + lp * exp(-t * 1.4) * 0.5
+	return _normalize(a, 0.55)
+
+
+func _wrong_note() -> PackedFloat32Array:
+	# One piano-ish note, slightly out of tune with itself.
+	var a := _buffer(4.5)
+	var f := 233.0
+	for i in a.size():
+		var t := float(i) / MIX_RATE
+		var v := sin(TAU * f * t) * exp(-t * 0.9) + sin(TAU * f * 1.012 * t) * exp(-t * 1.1) * 0.8
+		v += sin(TAU * f * 2.0 * t) * exp(-t * 1.8) * 0.35 + sin(TAU * f * 3.03 * t) * exp(-t * 2.6) * 0.15
+		v += _noise() * exp(-t * 200.0) * 0.2
+		a[i] = v
+	return _normalize(a, 0.45)
+
+
+func _breath() -> PackedFloat32Array:
+	# A slow inhale and exhale, too close and too even.
+	var a := _buffer(3.2)
+	var lp := 0.0
+	var lp2 := 0.0
+	var n := a.size()
+	for i in n:
+		var p := float(i) / n
+		lp += (_noise() - lp) * _lp_coeff(1400.0)
+		lp2 += (lp - lp2) * _lp_coeff(350.0)
+		var env := pow(sin(PI * clampf(p / 0.45, 0.0, 1.0)), 2.0) * 0.8 + pow(sin(PI * clampf((p - 0.5) / 0.5, 0.0, 1.0)), 2.0)
+		a[i] = (lp - lp2) * env
+	return _normalize(a, 0.4)
+
+
+func _guest_cue() -> PackedFloat32Array:
+	# A reversed bell swelling out of a sub tone: the Red Death is here.
+	var a := _buffer(3.5)
+	var n := a.size()
+	var bell := _bell(98.0, 3.5, 1.0)
+	for i in n:
+		var t := float(i) / MIX_RATE
+		var rev := bell[n - 1 - i] if n - 1 - i < bell.size() else 0.0
+		a[i] = rev * 0.8 + sin(TAU * 36.7 * t) * smoothstep(0.0, 2.5, t) * 0.4
+	return _normalize(a, 0.7)
+
+
+func _pressure() -> PackedFloat32Array:
+	# Almost silence: a faint sub pressure with a seamless loop.
+	var seconds := 6.0
+	var fade := int(0.4 * MIX_RATE)
+	var n := int(seconds * MIX_RATE)
+	var raw := PackedFloat32Array()
+	raw.resize(n + fade)
+	var brown := 0.0
+	for i in raw.size():
+		var t := float(i) / MIX_RATE
+		brown = brown * 0.998 + _noise() * 0.02
+		raw[i] = brown * 0.6 + sin(TAU * 30.0 * t) * 0.05
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		if i < fade:
+			var w := float(i) / fade
+			out[i] = raw[n + i] * (1.0 - w) + raw[i] * w
+		else:
+			out[i] = raw[i]
+	return _normalize(out, 0.3)
