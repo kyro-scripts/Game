@@ -75,10 +75,13 @@ func breach(impact_velocity: Vector3, at: Vector3, by: Node3D) -> bool:
 	var flat := Vector3(impact_velocity.x, 0.0, impact_velocity.z)
 	var impact_speed := flat.length()
 	FX.debris_burst(global_position + Vector3.UP * height * 0.5, flat * 0.95, 18,
-			Vector3(0.45, 0.55, thickness), Palette.lit(Palette.CHARCOAL, 0.9), floor_y, 4.0, 2.5)
+			Vector3(0.16, 0.7, thickness), CastleMaterials.wood(), floor_y, 4.0, 2.5)
 	FX.debris_burst(global_position + Vector3.UP * height * 0.5, flat * 0.8, 6,
-			Vector3(0.5, 0.06, 0.06), Palette.lit(Palette.BONE, 0.7), floor_y, 4.0, 2.0)
+			Vector3(0.5, 0.06, 0.02), CastleMaterials.iron(), floor_y, 4.0, 2.0)
 	AudioDirector.play(&"door_breach", at, 3.0, 1.0)
+	# A burst of dust-lit light so the splinters read even in a dark passage.
+	FX.flash_light(global_position + Vector3.UP * height * 0.6 + flat.normalized() * 0.8,
+			Color(1.0, 0.92, 0.82), 7.0, 7.0, 0.35)
 	breached_by.emit(by, impact_speed)
 	Events.door_breached.emit(self, impact_speed)
 	return true
@@ -111,9 +114,8 @@ func _rebuild() -> void:
 	_shape.position = Vector3(0.0, height * 0.5, 0.0)
 	add_child(_shape)
 
-	var wood := Palette.lit(Palette.CHARCOAL, 0.92)
-	var trim := Palette.lit(Palette.BONE, 0.7)
-	var red := Palette.emissive(Palette.RED, 0.4)
+	var wood := CastleMaterials.wood()
+	var iron := CastleMaterials.iron()
 	var half := width * 0.5
 	for side: float in [-1.0, 1.0]:
 		var hinge := Node3D.new()
@@ -121,22 +123,44 @@ func _rebuild() -> void:
 		hinge.position = Vector3(side * half, 0.0, 0.0)
 		add_child(hinge)
 		_panels.append(hinge)
-		var panel_w := half - 0.015
+		var panel_w := half - 0.012
 		var cx := -side * panel_w * 0.5
-		var slab := Palette.box(Vector3(panel_w, height, thickness), wood)
+		var slab := _box(Vector3(panel_w, height, thickness), wood)
 		slab.position = Vector3(cx, height * 0.5, 0.0)
 		hinge.add_child(slab)
-		# Pale inset frame lines on both faces.
-		for face_z: float in [thickness * 0.5 + 0.005, -thickness * 0.5 - 0.005]:
-			for y: float in [height * 0.18, height * 0.82]:
-				var bar := Palette.box(Vector3(panel_w * 0.7, 0.03, 0.01), trim)
-				bar.position = Vector3(cx, y, face_z)
-				hinge.add_child(bar)
-			var band := Palette.box(Vector3(panel_w, 0.08, 0.012), red)
-			band.position = Vector3(cx, height * 0.52, face_z)
-			hinge.add_child(band)
-	# Only one panel carries a small pale oval at eye height. Nobody knows why.
-	var oval := Palette.sphere(0.11, Palette.wax(), 12)
-	oval.scale = Vector3(0.8, 1.15, 0.25)
-	oval.position = Vector3((half - 0.015) * 0.5 + 0.12, 1.62, thickness * 0.5 + 0.01)
-	_panels[0].add_child(oval)
+		for face_z: float in [thickness * 0.5 + 0.012, -thickness * 0.5 - 0.012]:
+			# Three iron straps with rivets, running from the hinge side.
+			for y: float in [height * 0.16, height * 0.5, height * 0.84]:
+				var strap := _box(Vector3(panel_w * 0.92, 0.075, 0.018), iron)
+				strap.position = Vector3(cx, y, face_z)
+				hinge.add_child(strap)
+				for r in 5:
+					var rivet := Palette.sphere(0.016, iron, 8)
+					rivet.position = Vector3(cx - panel_w * 0.4 + float(r) * panel_w * 0.2, y, face_z + signf(face_z) * 0.01)
+					hinge.add_child(rivet)
+			# Ring pull near the meeting edge.
+			var ring := MeshInstance3D.new()
+			var torus := TorusMesh.new()
+			torus.inner_radius = 0.07
+			torus.outer_radius = 0.09
+			ring.mesh = torus
+			ring.material_override = iron
+			ring.rotation.x = PI * 0.5
+			ring.position = Vector3(-side * (panel_w - 0.16), height * 0.42, face_z + signf(face_z) * 0.02)
+			hinge.add_child(ring)
+	# One leaf carries a porcelain mask, nailed at eye height. Nobody knows why.
+	var mask := MeshInstance3D.new()
+	mask.mesh = MeshKit.mask_mesh(1.0, 0.0, 20, 24)
+	mask.material_override = CastleMaterials.porcelain()
+	mask.position = Vector3((half - 0.012) * 0.5 + 0.1, 1.62, thickness * 0.5 + 0.03)
+	mask.scale = Vector3(0.9, 0.9, 0.5)
+	_panels[0].add_child(mask)
+
+
+func _box(size: Vector3, material: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	mi.mesh = bm
+	mi.material_override = material
+	return mi

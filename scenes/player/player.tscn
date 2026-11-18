@@ -35,13 +35,13 @@ script = ExtResource("2_camera")
 script = ExtResource("3_sway")
 
 [node name="Weapon" type="Node3D" parent="Head/Camera/ViewmodelRoot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, -0.21, -0.52)
+transform = Transform3D(0.9903, 0, 0.1392, 0, 1, 0, -0.1392, 0, 0.9903, 0.16, -0.165, -0.44)
 script = ExtResource("4_weapon")
 
 [node name="Model" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon"]
 
 [node name="Muzzle" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon/Model"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.31)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.27)
 
 [node name="Flash" type="Node3D" parent="Head/Camera/ViewmodelRoot/Weapon/Model/Muzzle"]
 
@@ -54,9 +54,23 @@ script = ExtResource("5_watch_view")
 [node name="ViewmodelFill" type="OmniLight3D" parent="Head/Camera"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0.1)
 light_color = Color(0.92, 0.9, 0.86, 1)
-light_energy = 1.4
+light_energy = 2.6
 light_cull_mask = 524288
-omni_range = 2.0
+omni_range = 2.2
+
+[node name="ViewmodelKey" type="OmniLight3D" parent="Head/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.25, -0.15)
+light_color = Color(0.95, 0.92, 0.88, 1)
+light_energy = 1.6
+light_cull_mask = 524288
+omni_range = 1.4
+
+[node name="ViewmodelRim" type="OmniLight3D" parent="Head/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.1, -0.9)
+light_color = Color(0.9, 0.88, 0.86, 1)
+light_energy = 1.2
+light_cull_mask = 524288
+omni_range = 1.2
 
 [node name="StopwatchController" type="Node" parent="."]
 script = ExtResource("6_watch_ctrl")

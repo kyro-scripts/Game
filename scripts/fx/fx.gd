@@ -12,7 +12,7 @@ static func scene_root() -> Node:
 
 
 ## A thin beam from `from` to `to` that vanishes almost instantly.
-static func tracer(from: Vector3, to: Vector3, color: Color, width: float = 0.022, life: float = 0.07) -> void:
+static func tracer(from: Vector3, to: Vector3, color: Color, width: float = 0.009, life: float = 0.05) -> void:
 	var root := scene_root()
 	var length := from.distance_to(to)
 	if root == null or length < 0.05:

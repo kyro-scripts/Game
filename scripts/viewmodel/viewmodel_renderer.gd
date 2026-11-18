@@ -49,6 +49,17 @@ func _ready() -> void:
 	env.ambient_light_color = Color(0.55, 0.55, 0.58)
 	env.ambient_light_energy = 0.35
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	# A dim gradient sky that is never drawn (clear background) but gives
+	# silver, brass and glass something to reflect.
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.32, 0.31, 0.3)
+	sky_mat.sky_horizon_color = Color(0.55, 0.53, 0.5)
+	sky_mat.ground_horizon_color = Color(0.22, 0.2, 0.19)
+	sky_mat.ground_bottom_color = Color(0.03, 0.03, 0.03)
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	env.sky = sky
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_camera.environment = env
 	_viewport.add_child(_camera)
 	_camera.current = true

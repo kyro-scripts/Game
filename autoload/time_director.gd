@@ -48,6 +48,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	real_time += delta
 	world_time += delta * _scales[Channel.WORLD]
+	# Shaders (cloth sway, stained-glass shimmer) read the same world clock.
+	RenderingServer.global_shader_parameter_set(&"world_time", world_time)
 
 
 ## Effective scale of a channel (already combined with WORLD where relevant).

@@ -18,6 +18,9 @@ func _initialize() -> void:
 	for path in files:
 		var res := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REUSE)
 		var ok := res != null
+		if ok and res is Shader:
+			# Shaders compile lazily; force it so errors surface here.
+			ok = _compile_shader(res as Shader)
 		if ok and res is GDScript:
 			ok = (res as GDScript).can_instantiate() or (res as GDScript).is_abstract()
 			if not ok:
@@ -27,6 +30,17 @@ func _initialize() -> void:
 			printerr("VALIDATE FAIL: ", path)
 	print("VALIDATE: %d files checked, %d failures" % [files.size(), failures])
 	quit(1 if failures > 0 else 0)
+
+
+## Compile through the RenderingServer. A shader that fails to compile
+## exposes no uniforms, so shaders that declare uniforms are checked by count.
+func _compile_shader(shader: Shader) -> bool:
+	# get_rid() runs the preprocessor (#include) and compiles.
+	var declared := shader.code.count("uniform ") - shader.code.count("global uniform ")
+	var params := RenderingServer.get_shader_parameter_list(shader.get_rid())
+	if declared > 0 and params.is_empty():
+		return false
+	return true
 
 
 func _collect(dir_path: String, out: Array[String]) -> void:

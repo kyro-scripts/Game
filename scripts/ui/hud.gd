@@ -117,6 +117,10 @@ func _process(delta: float) -> void:
 	_hint.modulate.a = clampf(_hint_timer / 3.0, 0.0, 1.0)
 
 
+func hide_hint() -> void:
+	_hint_timer = 0.0
+
+
 func _on_hit_confirmed(killed: bool, _headshot: bool) -> void:
 	_crosshair.hit_flash = 1.0
 	if killed:

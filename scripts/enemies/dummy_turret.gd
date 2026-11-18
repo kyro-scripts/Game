@@ -76,10 +76,25 @@ func _set_glow(energy: float) -> void:
 
 
 func _build_lantern() -> void:
+	# An iron lantern with scarlet glass, hanging from the right glove.
+	var iron := CastleMaterials.iron()
+	var holder := Node3D.new()
+	holder.position = Vector3(0.31, 0.56, -0.06)
+	visual.add_child(holder)
 	_lantern_mat = Palette.unique(Palette.emissive(Palette.RED_HOT, 0.6))
-	_lantern = Palette.box(Vector3(0.16, 0.22, 0.16), _lantern_mat)
-	_lantern.position = Vector3(0.38, 1.05, -0.25)
-	visual.add_child(_lantern)
+	_lantern = Palette.box(Vector3(0.13, 0.18, 0.13), _lantern_mat)
+	holder.add_child(_lantern)
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var post := Palette.box(Vector3(0.015, 0.2, 0.015), iron)
+		post.position = Vector3(corner.x * 0.067, 0.0, corner.y * 0.067)
+		holder.add_child(post)
+	var cap := Palette.cylinder(0.09, 0.04, iron, 4)
+	cap.position.y = 0.12
+	cap.rotation.y = PI * 0.25
+	holder.add_child(cap)
+	var bail := Palette.cylinder(0.006, 0.12, iron, 6)
+	bail.position.y = 0.2
+	holder.add_child(bail)
 	_lantern_light = OmniLight3D.new()
 	_lantern_light.light_color = Palette.RED_HOT
 	_lantern_light.omni_range = 4.5

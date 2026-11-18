@@ -25,6 +25,12 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(_dir)
 	_main = MAIN.instantiate() as Main
 	add_child(_main)
+	# Photo mode: no developer readouts or controls hint.
+	GameState.show_speed = false
+	GameState.show_fps = false
+	for c in _main.get_children():
+		if c is HUD:
+			(c as HUD).hide_hint()
 	await _frames(40)
 	var p := _main.player
 

@@ -168,38 +168,117 @@ func _hide_flash() -> void:
 
 
 func _build_placeholder_model() -> void:
-	# A plain, heavy, old-fashioned sidearm silhouette in black with a red
-	# band at the muzzle, held by a pale hand. Proportions are placeholder.
-	var metal := Palette.lit(Color(0.3, 0.29, 0.3), 0.32, 0.55)
-	var barrel := Palette.box(Vector3(0.036, 0.042, 0.34), metal)
-	barrel.position = Vector3(0.0, 0.0, -0.13)
+	# An old, heavy flintlock-pattern pistol: octagonal blued barrel with a
+	# brass muzzle swell, walnut stock with a bird's-head grip, lock plate,
+	# cock and frizzen, brass trigger guard. Held in a pale kid glove.
+	var steel := CastleMaterials.blued_steel()
+	var brass := CastleMaterials.brass()
+	var walnut := CastleMaterials.wood_held()
+
+	# Barrel along -Z (lathe axis Y rotated to -Z), eight flat facets.
+	var barrel_prof := PackedVector2Array([Vector2(0.0, 0.0), Vector2(0.0135, 0.0), Vector2(0.0135, 0.015),
+			Vector2(0.0122, 0.03), Vector2(0.0112, 0.29), Vector2(0.0, 0.29)])
+	var barrel := _mesh(MeshKit.lathe(barrel_prof, 8, false), steel)
+	barrel.rotation.x = -PI * 0.5
+	barrel.position = Vector3(0.0, 0.0, 0.03)
 	_model.add_child(barrel)
-	var band := Palette.box(Vector3(0.044, 0.05, 0.018), Palette.emissive(Palette.RED, 0.6))
-	band.position = Vector3(0.0, 0.0, -0.285)
-	_model.add_child(band)
-	var frame := Palette.box(Vector3(0.042, 0.06, 0.12), metal)
-	frame.position = Vector3(0.0, -0.01, 0.06)
-	_model.add_child(frame)
-	var grip := Palette.box(Vector3(0.04, 0.13, 0.055), Palette.lit(Palette.ASH, 0.8))
-	grip.position = Vector3(0.0, -0.085, 0.1)
-	grip.rotation.x = deg_to_rad(-18.0)
-	_model.add_child(grip)
-	var hammer := Palette.box(Vector3(0.012, 0.03, 0.02), metal)
-	hammer.position = Vector3(0.0, 0.04, 0.115)
-	_model.add_child(hammer)
-	var hand := Palette.box(Vector3(0.07, 0.075, 0.09), Palette.wax())
-	hand.position = Vector3(0.006, -0.09, 0.11)
-	hand.rotation.x = deg_to_rad(-18.0)
-	_model.add_child(hand)
-	var sleeve := Palette.cylinder(0.05, 0.4, Palette.lit(Palette.BLACK, 0.95), 12)
-	sleeve.position = Vector3(0.03, -0.17, 0.3)
-	sleeve.rotation = Vector3(deg_to_rad(62.0), 0.0, deg_to_rad(-8.0))
+	var swell := _mesh(MeshKit.lathe(PackedVector2Array([Vector2(0.0085, 0.0), Vector2(0.0145, 0.0),
+			Vector2(0.0158, 0.008), Vector2(0.0145, 0.018), Vector2(0.0085, 0.018)]), 20), brass)
+	swell.rotation.x = -PI * 0.5
+	swell.position = Vector3(0.0, 0.0, -0.245)
+	_model.add_child(swell)
+	var bore := Palette.cylinder(0.0075, 0.004, Palette.lit(Palette.BLACK, 1.0), 12)
+	bore.rotation.x = PI * 0.5
+	bore.position = Vector3(0.0, 0.0, -0.264)
+	_model.add_child(bore)
+
+	# Stock: side profile (u = toward the shooter, v = up), extruded sideways.
+	var stock_profile := PackedVector2Array([
+		Vector2(-0.2, -0.011), Vector2(0.0, -0.002), Vector2(0.03, 0.013), Vector2(0.085, 0.012),
+		Vector2(0.1, -0.008), Vector2(0.11, -0.045), Vector2(0.115, -0.085), Vector2(0.12, -0.115),
+		Vector2(0.105, -0.138), Vector2(0.078, -0.135), Vector2(0.066, -0.11), Vector2(0.055, -0.075),
+		Vector2(0.038, -0.044), Vector2(0.0, -0.03), Vector2(-0.2, -0.025)])
+	var stock := _mesh(MeshKit.extrude_polygon(stock_profile, 0.03), walnut)
+	stock.rotation.y = -PI * 0.5
+	_model.add_child(stock)
+	var butt_cap := Palette.sphere(0.02, brass, 14)
+	butt_cap.scale = Vector3(0.85, 0.7, 1.2)
+	butt_cap.position = Vector3(0.0, -0.137, 0.094)
+	_model.add_child(butt_cap)
+
+	# Lock: plate, cock (hammer) and frizzen on the right side.
+	var plate := Palette.box(Vector3(0.004, 0.024, 0.07), steel)
+	plate.position = Vector3(0.0165, 0.0, 0.045)
+	_model.add_child(plate)
+	var cock := Palette.box(Vector3(0.006, 0.032, 0.011), steel)
+	cock.position = Vector3(0.012, 0.024, 0.07)
+	cock.rotation.x = deg_to_rad(-28.0)
+	_model.add_child(cock)
+	var jaw := Palette.box(Vector3(0.008, 0.008, 0.016), steel)
+	jaw.position = Vector3(0.012, 0.04, 0.062)
+	_model.add_child(jaw)
+	var frizzen := Palette.box(Vector3(0.006, 0.026, 0.005), steel)
+	frizzen.position = Vector3(0.012, 0.018, 0.03)
+	frizzen.rotation.x = deg_to_rad(12.0)
+	_model.add_child(frizzen)
+
+	# Brass trigger guard and trigger.
+	var guard := MeshInstance3D.new()
+	var gt := TorusMesh.new()
+	gt.inner_radius = 0.018
+	gt.outer_radius = 0.0215
+	gt.ring_segments = 8
+	guard.mesh = gt
+	guard.material_override = brass
+	guard.rotation.z = PI * 0.5
+	guard.scale = Vector3(1.0, 1.0, 1.45)
+	guard.position = Vector3(0.0, -0.038, 0.04)
+	_model.add_child(guard)
+	var trig := Palette.box(Vector3(0.004, 0.022, 0.004), steel)
+	trig.position = Vector3(0.0, -0.033, 0.045)
+	trig.rotation.x = deg_to_rad(-15.0)
+	_model.add_child(trig)
+
+	# Gloved hand around the grip, index finger along the guard.
+	var glove := CastleMaterials.glove()
+	var palm := Palette.box(Vector3(0.05, 0.075, 0.06), glove)
+	palm.position = Vector3(0.012, -0.075, 0.1)
+	palm.rotation.x = deg_to_rad(-22.0)
+	_model.add_child(palm)
+	for i in 3:
+		var f := Palette.capsule(0.0095, 0.05, glove)
+		f.position = Vector3(-0.012, -0.06 - float(i) * 0.02, 0.07 + float(i) * 0.006)
+		f.rotation.z = PI * 0.5
+		_model.add_child(f)
+	var index := Palette.capsule(0.009, 0.05, glove)
+	index.position = Vector3(-0.004, -0.035, 0.045)
+	index.rotation.x = PI * 0.5
+	_model.add_child(index)
+	var thumb := Palette.capsule(0.0095, 0.05, glove)
+	thumb.position = Vector3(-0.02, -0.03, 0.085)
+	thumb.rotation.x = deg_to_rad(70.0)
+	_model.add_child(thumb)
+	var sleeve := Palette.cylinder(0.05, 0.4, CastleMaterials.velvet(Color(0.05, 0.045, 0.05), 0.0, 0.0), 16)
+	sleeve.position = Vector3(0.02, -0.25, 0.3)
+	sleeve.rotation = Vector3(deg_to_rad(60.0), 0.0, deg_to_rad(-8.0))
 	_model.add_child(sleeve)
-	# Muzzle flash: a pale star of two crossed quads.
-	var flash_mat := Palette.unshaded(Palette.PAPER)
-	for k in 2:
-		var q := Palette.box(Vector3(0.16, 0.025, 0.001), flash_mat)
-		q.rotation.z = k * PI * 0.5
+
+	# Muzzle flash: a pale star of two crossed quads around a red core.
+	var flash_mat := StandardMaterial3D.new()
+	flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flash_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	flash_mat.albedo_color = Color(1.0, 0.85, 0.65)
+	for k in 5:
+		var q := Palette.sphere(0.009 + 0.004 * float(k % 3), flash_mat, 8)
+		q.scale = Vector3(1.0, 1.0, 1.8 + float(k) * 0.5)
+		q.position = Vector3(sin(k * 2.4) * 0.005, cos(k * 2.4) * 0.005, -0.012 - float(k) * 0.008)
 		_flash.add_child(q)
-	var core := Palette.box(Vector3(0.05, 0.05, 0.001), Palette.unshaded(Palette.RED_HOT))
+	var core := Palette.sphere(0.012, Palette.unshaded(Palette.RED_HOT), 8)
 	_flash.add_child(core)
+
+
+func _mesh(mesh: Mesh, material: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = material
+	return mi

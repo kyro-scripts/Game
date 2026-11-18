@@ -117,6 +117,13 @@ common/physics_ticks_per_second=120
 common/max_physics_steps_per_frame=12
 3d/physics_engine="Jolt Physics"
 
+[shader_globals]
+
+world_time={
+"type": "float",
+"value": 0.0
+}
+
 [rendering]
 
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)

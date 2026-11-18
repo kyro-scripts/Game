@@ -7,7 +7,7 @@ shader_type canvas_item;
 uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
 uniform float red_keep : hint_range(0.0, 1.0) = 1.0;
 uniform float contrast : hint_range(0.5, 2.0) = 1.12;
-uniform float vignette : hint_range(0.0, 1.0) = 0.5;
+uniform float vignette : hint_range(0.0, 1.0) = 0.3;
 uniform float grain : hint_range(0.0, 0.2) = 0.035;
 uniform float borrow : hint_range(0.0, 1.0) = 0.0;
 uniform float debt : hint_range(0.0, 1.0) = 0.0;
@@ -21,7 +21,8 @@ float hash12(vec2 p) {
 
 vec3 grade(vec3 col) {
 	float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
-	float redness = clamp((col.r - max(col.g, col.b)) * 2.5, 0.0, 1.0) * red_keep;
+	// Only clearly red light survives; warm candle casts fall back to mono.
+	float redness = clamp((col.r - max(col.g, col.b) - 0.07) * 3.0, 0.0, 1.0) * red_keep;
 	vec3 mono = vec3(luma);
 	vec3 red = vec3(max(col.r, luma), luma * 0.12, luma * 0.1);
 	return mix(mono, red, redness);
@@ -37,7 +38,7 @@ void fragment() {
 	if (borrow > 0.001) {
 		vec3 acc = col;
 		for (int i = 1; i <= 4; i++) {
-			float k = float(i) * 0.006 * borrow * r;
+			float k = float(i) * 0.003 * borrow * r;
 			acc += textureLod(screen_texture, uv - c * k * 4.0, 0.0).rgb;
 		}
 		col = acc / 5.0;

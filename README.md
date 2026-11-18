@@ -7,7 +7,8 @@ stopwatch in the other.
 
 **Engine:** Godot **4.7.x**, GDScript, desktop, keyboard + mouse.
 **Status:** **Phases A + B done:** movement sandbox, combat, run timer,
-Borrow Time and Time Debt. Procedural floors (Phase C) haven't started yet,
+Borrow Time and Time Debt, plus a realistic art pass on the map, the
+figures and the hands. Procedural floors (Phase C) haven't started yet,
 on purpose: movement feel gets signed off first (see *Next step* below).
 
 ---
@@ -32,25 +33,33 @@ on purpose: movement feel gets signed off first (see *Next step* below).
 
 ### The sandbox (`scenes/sandbox/movement_sandbox.tscn`)
 
-You spawn at the start of the **speed hall**. Teleport between areas from F1 → Teleport.
+You spawn in front of the sealed entrance doors of the **great hall**.
+Teleport between areas from F1 → Teleport.
 
-* **Speed hall** (0 → −100 m). Pillars every 8 m make speed readable, and
-  floor markers show every 10 m. It has a hurdle (**jump**), a low gate
-  (**slide** under it), a ramp up to a platform with a long ramp down
-  (**slide downhill** to gain speed), and a low tunnel (a sustained slide).
-  A static target dummy stands at 10 m. A lantern-turret dummy sits on the
-  platform.
-* **Door gallery** (−100 → −160 m). A tight corridor with **4 breachable
-  doors**. Hit one above about 7 m/s and it bursts. A slow touch makes it
-  creak open, which takes long enough to feel like a penalty.
-* **Arena** (−160 → −200 m). Has 3 walker dummies, 2 lantern turrets and a
-  pendulum wall clock that runs on *world* time, so Borrow Time shows up
-  everywhere. Dummies respawn 4 s after they die.
+* **Great hall** (0 → −100 m). A pointed stone vault on ribbed piers, a
+  black-and-white marble floor, scarlet lancet windows on the left that throw
+  red shafts across the floor, candle sconces and red velvet drapes on the
+  right, and three iron chandeliers. The obstacles:
+  * a stone **balustrade** to jump,
+  * a half-lowered **portcullis** to slide under,
+  * a ramp up to a stone dais with a long ramp down, for sliding downhill,
+  * a low passage under an oak lintel, for a sustained slide.
+
+  A static target dummy stands at 10 m, and a lantern-turret dummy waits on
+  the dais.
+* **Door gallery** (−100 → −160 m). A tight passage with stonework and an
+  oak-beamed ceiling. It holds **4 breachable doors** of iron-strapped oak in
+  stone frames, one with a porcelain mask nailed to it. Hit one above about
+  7 m/s and it bursts. A slow touch makes it creak open, which takes long
+  enough to feel like a penalty.
+* **Ballroom** (−160 → −200 m). Stone columns, a timber ceiling, a great
+  candle chandelier, scarlet windows on both sides, and a tall-case pendulum
+  clock that runs on *world* time, so Borrow Time shows up everywhere. It
+  holds 3 walker dummies and 2 lantern turrets, which respawn 4 s after they
+  die.
 
 The dummies are **test dummies**, not canon enemies. The Rusher, Watcher and
 Bellkeeper come in Phase D, built on the same `EnemyBase`.
-
----
 
 ## What's implemented
 
@@ -75,6 +84,37 @@ Bellkeeper come in Phase D, built on the same `EnemyBase`.
 * Every number is in `data/movement/default_movement.tres`
   (`MovementTuning`). You can tune it live in **F1 → Live tuning** and use
   **Save tuning** to write it back.
+
+### Look (art pass)
+Everything is built procedurally in code. There are no imported assets, so
+nothing needs licensing, and each piece can be swapped for real art later.
+
+* **Materials** (`shaders/`). World-space shaders for:
+  * ashlar masonry, with irregular courses, recessed mortar, chipped edges,
+    floor grime and water streaks;
+  * polished black-and-white marble, with veins, grout and worn patches;
+  * dark oak planks;
+  * scarlet stained glass in diamond quarries;
+  * velvet cloth that sways on *world* time, so it hangs still during
+    Borrow Time.
+* **Architecture and props** (`MeshKit`, `CastleProps`). Lathed columns with
+  bases and capitals, a pointed vault with ribs, mouldings, pointed-arch
+  frames and lancet windows cut into the walls, balustrades, a portcullis,
+  sconces and chandeliers with flickering candles, drapes and a tall-case
+  clock.
+* **Figures.** Hooded velvet robes that glide (no legs are ever seen), bell
+  sleeves and pale kid gloves. The masks are sculpted glazed porcelain, and
+  their smile, neutral and open-mouthed expressions snap from one to the next
+  instantly.
+* **Hands.** A silver pocket watch with a domed crystal, an enamel dial with
+  Roman numerals, garnet charge jewels and a chain. The pistol is
+  flintlock-style, with an octagonal barrel and a walnut stock.
+* **Lighting.** Volumetric fog, red light shafts through the windows,
+  screen-space reflections on the marble, SSAO and candle flicker. The final
+  grade keeps only clearly red light red; everything else is monochrome.
+* **Performance.** Volumetric fog and about 14 shadowed spot lights need a
+  Forward+ capable GPU. If frame rate suffers, untick `window_shafts` on the
+  sandbox's `Blockout` node.
 
 ### Combat, time and the run (Phase B)
 * **Hitscan placeholder sidearm.** Rays hit enemy *hurtboxes*, and head hits
@@ -122,7 +162,8 @@ scripts/player Player controller, camera feel, StopwatchController (Borrow Time)
 scripts/viewmodel  Hands rendering (separate camera, fixed FOV), stopwatch, sway
 scripts/weapons    WeaponBase (hitscan)
 scripts/enemies    EnemyBase, FaceRig, Hurtbox, test dummies, Projectile
-scripts/world      BreachableDoor, PendulumClock, SandboxBlockout, spawners, debris
+scripts/world      BreachableDoor, PendulumClock, SandboxBlockout, CastleProps, FlickerLight, spawners
+scripts/util       Palette, CastleMaterials, MeshKit (lathe / sweep / arches / vault / mask / curtain)
 scripts/ui         HUD, PostProcess, DebugOverlay, DebugMenu, RunEndScreen
 scenes/        main, player, enemies, door, sandbox
 tests/         headless gameplay tests (98 checks)

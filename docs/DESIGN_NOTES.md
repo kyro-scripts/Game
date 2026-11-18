@@ -131,6 +131,22 @@ without changing any signatures.
 | G: rank + meta | — |
 | H: The Castle Learns You | — |
 
+## Art-pass notes
+
+* There are still no imported assets. Materials are procedural shaders, and
+  meshes come from `MeshKit` (lathe, sweep, arches, vault, porcelain mask,
+  curtain) and `CastleProps`. Each piece is a seam where real art can drop in.
+* The palette lock holds. The final grade keeps only clearly red pixels red
+  (`palette_post.gdshader`), so warm candlelight resolves to white.
+* Two collision changes came with the art pass:
+  * the ballroom pillars use round colliders to match the round columns;
+  * the portcullis has a 0.6 m stone pier at its inner end, so the slide gap
+    is now 7.4 m wide instead of 8 m.
+
+  All other playable volumes are unchanged.
+* Debug floor markings (grid, centre line, JUMP/SLIDE labels) are gone. The
+  speed readout (F3) and the F1 teleports remain.
+
 ## Known limitations of this slice
 
 * There are no stairs or step-up yet. Level geometry uses ramps.
