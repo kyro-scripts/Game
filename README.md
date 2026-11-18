@@ -138,8 +138,10 @@ tools/run_tests.sh /path/to/godot   # import, validate all files, run tests, smo
 
 For visual checks, `res://tools/capture_screenshots.tscn` boots the real game
 and saves PNGs of key moments to `user://screenshots/` (or `$SHOT_DIR`):
-spawn, a running jump, the obstacles, the door gallery, the arena, a mask
-close-up, firing, Borrow Time, Time Debt, low time and the run-end screen.
+spawn, a running jump, a slide under the gate, the downhill ramp, the door
+gallery, a door mid-breach, the arena, a mask close-up, firing, a kill,
+Borrow Time, Time Debt, low time, the debug menu and the run-end screen.
+Short-lived effects are photographed in engine slow motion.
 It needs a real renderer, so run it without `--headless`.
 
 The tests drive the game the way a player would, through input actions,

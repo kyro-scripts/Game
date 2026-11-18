@@ -15,6 +15,8 @@ var _player: Player
 var _panel: PanelContainer
 var _actions_box: VBoxContainer
 var _was_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
+## Checkboxes mirroring GameState flags, re-synced every time the menu opens.
+var _flag_boxes: Dictionary = {}  # StringName -> CheckBox
 
 
 func setup(player: Player) -> void:
@@ -47,6 +49,7 @@ func toggle() -> void:
 		_was_mouse_mode = Input.mouse_mode
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_rebuild_actions()
+		_sync_flags()
 		get_tree().paused = true
 	else:
 		get_tree().paused = false
@@ -77,12 +80,11 @@ func _build() -> void:
 	scroll.add_child(box)
 
 	box.add_child(_header("DEBUG  (F1 / Esc to close)"))
-	box.add_child(_check("God mode", GameState.god_mode, func(v: bool) -> void: GameState.set_flag(&"god_mode", v)))
-	box.add_child(_check("Infinite timer", GameState.infinite_timer, func(v: bool) -> void: GameState.set_flag(&"infinite_timer", v)))
-	box.add_child(_check("Show FPS", GameState.show_fps, func(v: bool) -> void: GameState.set_flag(&"show_fps", v)))
-	box.add_child(_check("Show speed / info (F3)", GameState.show_speed, func(v: bool) -> void: GameState.set_flag(&"show_speed", v)))
-	box.add_child(_check("Borrow Time: toggle instead of hold", GameState.borrow_time_toggle_mode,
-			func(v: bool) -> void: GameState.borrow_time_toggle_mode = v))
+	_flag_check(box, "God mode", &"god_mode")
+	_flag_check(box, "Infinite timer", &"infinite_timer")
+	_flag_check(box, "Show FPS", &"show_fps")
+	_flag_check(box, "Show speed / info (F3)", &"show_speed")
+	_flag_check(box, "Borrow Time: toggle instead of hold", &"borrow_time_toggle_mode")
 	box.add_child(_check("Engine slow-mo x0.25 (inspect frames)", false,
 			func(v: bool) -> void: Engine.time_scale = 0.25 if v else 1.0))
 
@@ -163,6 +165,17 @@ func _save_tuning() -> void:
 		if res.resource_path.begins_with("res://"):
 			var err := ResourceSaver.save(res)
 			print("Saved %s: %s" % [res.resource_path, error_string(err)])
+
+
+func _flag_check(box: VBoxContainer, text: String, flag: StringName) -> void:
+	var c := _check(text, bool(GameState.get(flag)), func(v: bool) -> void: GameState.set_flag(flag, v))
+	_flag_boxes[flag] = c
+	box.add_child(c)
+
+
+func _sync_flags() -> void:
+	for flag: StringName in _flag_boxes:
+		(_flag_boxes[flag] as CheckBox).set_pressed_no_signal(bool(GameState.get(flag)))
 
 
 # --- Widget helpers ------------------------------------------------------------------
