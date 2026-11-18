@@ -230,8 +230,9 @@ func _red_window(wall: CSGBox3D, wall_x: float, z: float) -> void:
 	cut.polygon = outline
 	cut.mode = CSGPolygon3D.MODE_DEPTH
 	cut.depth = 2.0
-	cut.rotation.y = PI * 0.5
-	cut.position = Vector3(wall_x + 1.0, sill, z) - wall.position
+	# The wall is a rotated box: express the cut in the wall's local frame.
+	var world := Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(wall_x + 1.0, sill, z))
+	cut.transform = wall.transform.affine_inverse() * world
 	wall.add_child(cut)
 	var glass := MeshInstance3D.new()
 	glass.mesh = MeshKit.extrude_polygon(outline, 0.02)

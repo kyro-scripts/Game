@@ -161,7 +161,7 @@ without changing any signatures.
   doors, combat arena) is still there. Enemy head pivots and head hurtboxes
   rose to 1.96 m to match the longer necks.
 
-## Known limitations of this slice## Known limitations of this slice
+## Known limitations of this slice
 
 * There are no stairs or step-up yet. Level geometry uses ramps.
 * Enemies steer straight at you. `NavigationAgent3D` arrives in Phase C/D
